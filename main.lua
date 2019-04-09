@@ -1,5 +1,7 @@
 local composer = require( "composer" )
 
-math.randomseed( os.time )
+display.setStatusBar( display.HiddenStatusBar )
 
-composer.gotoScreen("intro")
+math.randomseed( os.time() )
+
+composer.gotoScene("intro")
