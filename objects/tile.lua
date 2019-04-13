@@ -3,106 +3,215 @@ local Tile = Object:extend()
 local function setRandomValue() -- двойка = 90%     четверка = 10%
 	local x = math.random(10)
 	if x <= 1 then
-		return 4
+		return 64
 	elseif 1 < x then
-		return 2
+		return 128
 	end
 end
 -----------------------------------------------------------------
 -----------------------------------------------------------------
 -----------------------------------------------------------------
--- тут уже твоя работа, установи цвета для плиток
+-- все цвета для плиток, заданы картинками, в файле padoru
 function setColor(value)
-	if value > 2048 then return {0, 0, 0, 1}
-	elseif value == 2 then return {0.93, 0.91, 0.93, 1}
-	elseif value == 4 then return {0.88, 0.72, 0.87, 1}
-	elseif value == 8 then return {0.86, 0.52, 0.85, 1}
-	elseif value == 16 then return {0.8, 0.32, 0.78, 1}
-	elseif value == 32 then return {0.71, 0.28, 0.7, 1}
-	elseif value == 64 then return {0.62, 0.12, 0.6, 1}
-	elseif value == 128 then return {0.87, 0.15, 0.95, 1}
-	elseif value == 256 then return {0.64, 0.02, 0.71, 1}
-	elseif value == 512 then return {0.5, 0.14, 0.54, 1}
-	elseif value == 1024 then return {0.32, 0.05, 0.31, 1}
-	elseif value == 2048 then return {0.24, 0.05, 0.23, 1}
+	if value > 2^25 then return {0, 0, 0, 1}
+	elseif value == 2^1 then return {
+    	type = "image",
+    	filename = "padoru/coh9.png"
+	}
+	elseif value == 2^2 then return {
+    	type = "image",
+    	filename = "padoru/coh10.png"
+	}
+	elseif value == 2^3 then return {
+    	type = "image",
+    	filename = "padoru/coh2.png"
+	}
+	elseif value == 2^4 then return {
+    	type = "image",
+    	filename = "padoru/coh3.png"
+	}
+	elseif value == 2^5 then return {
+    	type = "image",
+    	filename = "padoru/coh4.png"
+	}
+	elseif value == 2^6 then return {
+    	type = "image",
+    	filename = "padoru/coh8.png"
+	}
+	elseif value == 2^7 then return {
+    	type = "image",
+    	filename = "padoru/coh5.png"
+	}
+	elseif value == 2^8 then return {
+    	type = "image",
+    	filename = "padoru/coh6.png"
+	}
+	elseif value == 2^9 then return {
+    	type = "image",
+    	filename = "padoru/coh7.png"
+	}
+	elseif value == 2^10 then return {
+    	type = "image",
+    	filename = "padoru/coh1.png"
+	}
+	elseif value == 2^11 then return {
+    	type = "image",
+    	filename = "padoru/coh11.png"
+	}
+	elseif value == 2^12 then return {
+    	type = "image",
+    	filename = "padoru/padoru1.png"
+	}
+	elseif value == 2^13 then return {
+    	type = "image",
+    	filename = "padoru/padoru2.png"
+	}
+	elseif value == 2^14 then return {
+    	type = "image",
+    	filename = "padoru/padoru3.png"
+	}
+	elseif value == 2^15 then return {
+    	type = "image",
+    	filename = "padoru/padoru4.png"
+	}
+	elseif value == 2^16 then return {
+    	type = "image",
+    	filename = "padoru/padoru5.png"
+	}
+	elseif value == 2^17 then return {
+    	type = "image",
+    	filename = "padoru/padoru6.png"
+	}
+	elseif value == 2^18 then return {
+    	type = "image",
+    	filename = "padoru/padoru7.png"
+	}
+	elseif value == 2^19 then return {
+    	type = "image",
+    	filename = "padoru/padoru8.png"
+	}
+	elseif value == 2^20 then return {
+    	type = "image",
+    	filename = "padoru/padoru9.png"
+	}
+	elseif value == 2^21 then return {
+    	type = "image",
+    	filename = "padoru/padoru10.png"
+	}
+	elseif value == 2^22 then return {
+    	type = "image",
+    	filename = "padoru/padoru11.png"
+	}
+	elseif value == 2^23 then return {
+    	type = "image",
+    	filename = "padoru/padoru12.png"
+	}
+	elseif value == 2^24 then return {
+    	type = "image",
+    	filename = "padoru/padoru13.png"
+	}
+	elseif value == 2^25 then return {
+    	type = "image",
+    	filename = "padoru/padoru14.png"
+	}
 	end
 end
 -----------------------------------------------------------------
 -----------------------------------------------------------------
 -----------------------------------------------------------------
 function setColorText(value)
-	if value > 2048 then return {1, 1, 1}
-	else return {0, 0, 0} end
+	if value > 2048 then return {1, 1, 1, 0}
+	else return {0, 0, 0, 1} end
 end
 -----------------------------------------------------------------
 -----------------------------------------------------------------
 -----------------------------------------------------------------
 
-function Tile:new(field, x, y, value, size, parent)
+function Tile:new(group, x, y, value, size, parent)
 	self.x, self.y = x, y -- положение плитки относительно экрана 
 	self.size = size -- размер плитки высота и ширина
 	self.concated = false -- соединенна ли плитка только что??
 	self.value = value or setRandomValue() -- значение плитки ну типо степень двойки(2, 4, 8, 16)
-	self.parent = parent
+	self.parent = parent -- отцовское игровое поле
 
-	self.field = field -- группа в которой это все рисуется
+
+	self.group = group -- группа в которой это все рисуется
 	self.defaultSize = size - size/28 -- размер шрифта по default'y
 
-	self.completeAnimation = function() self.parent.hasAnimation = false end
+	self.completeAnimation = function() -- окончание анимации, пременная станет false когда закончится последняя анимация 
+		if self.parent.animsInQueue == 1 then
+			self.parent.hasAnimation = false
+		end
+		self.parent.animsInQueue = self.parent.animsInQueue - 1 
+	end
 
-	local backg = display.newRoundedRect(self.field, self.x, self.y, 0, 0, 30) -- плитка, типо ее задний фон
-	backg:setFillColor(unpack(setColor(self.value))) -- устанавливаю цвет
-	backg:setStrokeColor(unpack({0, 0, 0, 0.9})) -- окантовочку
-	backg.strokeWidth = 0
+	local backg = display.newRoundedRect(unpack({ -- задник, плитки
+			--self.group, -- parent
+			self.x, -- x
+			self.y, -- y
+			self.size-4, -- width
+			self.size-4, -- height
+			30, -- cornerRadius
+		})) -- плитка, типо ее задний фон
+	backg.fill = ((setColor(self.value)))
+	backg.strokeWidth = 4
+	backg:setStrokeColor(0, 0, 0, 1)
+
 	self.backg = backg -- хз, зачем это, но так надо
 
-	local text = display.newText(self.field, tostring(self.value), self.x, self.y, native.systemFont,self.defaultSize - (#tostring(self.value) - 1) * self.size/5)  -- текст плитки, число внутри клетки
-	text:setFillColor(0, 0, 0, 0) -- устанавливаю цвет, по default'y прозрачный, чтобы раньше задника не появлялся
-	self.text = text -- тоже самое что и строка 51
 
-	local clause1 = function () self.text:setFillColor(unpack(setColorText(self.value))); self.parent.hasAnimation = false end -- установка цвета для текста, чтобы он перестал быть прозрачным
-
-	transition.to(self.backg, { -- анимация появления плитки
-		time = 100, -- время анимации
-		--fill = setColor(self.value),
-		width = self.size - 4, --
-		height = self.size - 4, -- изменение рамера
-		strokeWidth = 4, -- окантовка
-		onComplete = clause1 -- цвет для текста, строка 57
-	})
-	
-
-	
+	local text = display.newText(({
+			self.group, -- parent
+			text = tostring(self.value), -- text
+			x = self.x, -- x
+			y = self.y, -- y
+			--width = self.size, -- width
+			--height = self.size, -- height
+			font = native.systemFont, -- font
+			fontSize = self.defaultSize - (#tostring(self.value) - 1) * self.size/5, -- fontSize
+			align = "center"
+		}))  -- текст плитки, число внутри клетки
+	text:setFillColor(unpack(setColorText(self.value)))
+	self.text = text
+	self.group:insert(self.backg)
+	self.group:insert(self.text)
 end
 
 -----------------------------------------------------------------
 -- Функция соединения двух плиток
 -----------------------------------------------------------------
 
-function Tile:concat(other, dir, k) -- соединяет две плитки
+function Tile:concat(other) -- соединяет две плитки
 	local val = self.value + other.value -- значение которое установится на плитке
 	self.value = val -- изменение значения плитки
 	self.concated = true -- устанавливаем, что он только что соединен, чтобы не было бага типо, когда он плитки 2 2 4  превращает в плитку 8
-	self.parent.hasAnimation = true
-
-
-
-	k = k - 0.5 -- короче, k это то насколько кубиков он передвинется, так как нам не нужно чтобы он полностью входил в другой мы уменьшаем это значение на половину
-	if dir == "up" then other:moveUp(k) -- если кубик, соединяется с верхним, то делаем анимацию движения вверх
-	elseif dir == "down" then other:moveDown(k) -- вниз
-	elseif dir == "right" then other:moveRight(k) -- вправо
-	elseif dir == "left" then other:moveLeft(k) end -- влево
-
+	self.parent.hasAnimation = true -- устанавливаем в игровом поле, что сейчас идет анимация
+	self.parent.animsInQueue = self.parent.animsInQueue + 1 --увеличиваем количество анимаций в очереди
 	
-	self.text.text = tostring(self.value) -- изменение значения плитки
-	self.text.size = self.defaultSize - (#tostring(self.value) - 1) * self.size/5 -- установка размера значения плитки, если в нем будет больше знаков значит шрифт должен быть меньше
-	self.text:setFillColor(unpack(setColorText(self.value))) -- установка цвета для текста
-	self.backg:setFillColor(unpack(setColor(self.value))) -- установка цвета для задника плитки, строка 13
- 	other:remove() 
+	local scaleAnim_part2 = function() -- окончание анимации и возвращение плитки в прежний размер
+		transition.to(self.backg, {
+			time = timeForMakeDinosaurHappy/2,
+			width = self.size - 4,
+			height= self.size - 4,
+			onComplete = self.completeAnimation
+		})
+	end
+	self.scaleAnim_part1 = function() -- эффект увелечения плитки
+		self.text.text = tostring(self.value) -- установка значения
+		self.text.size = self.defaultSize - (#tostring(self.value) - 1) * self.size/5 -- размера текста
+		self.backg.fill = (setColor(self.value)) -- изменение задника
+		self.text:setFillColor(unpack(setColorText(self.value)))
+		transition.to(self.backg, { -- сама анимация увеличения
+			time = timeForMakeDinosaurHappy/2,
+			width = self.size + self.size/6,
+			height= self.size + self.size/6,
+			onComplete = scaleAnim_part2
+		})
+		other:remove() -- удаление присоединенной плитки
+	end
+	
 
-
-
-
+	other:concatAnim(self) -- анимация движения к плитке
 	return val
 end
 -----------------------------------------------------------------
@@ -110,10 +219,11 @@ end
 -----------------------------------------------------------------
 
 -----------------------------------------------------------------
-timeForMakeDinosaurHappy = 500 -- время за которое происходит движение плитки
+timeForMakeDinosaurHappy = 50 -- время анимаций
 -----------------------------------------------------------------
 
 -----------------------------------------------------------------
+--Animations of MOVING
 -----------------------------------------------------------------
 -----------------------------------------------------------------
 -----------------------------------------------------------------
@@ -122,57 +232,83 @@ function Tile:remove() -- удаление клетки
 	self.text:removeSelf() -- удаляет текст
 end
 
-function Tile:moveUp(k) -- передвигает плитку на k клеток вверх с анимацией
-	self.parent.hasAnimation = true
+
+function Tile:concatAnim(other) -- анимация присоединения
+	local tx, ty = other.x, other.y
+	--просто плитка идет к другой, ничего интересного
 	transition.to(self.backg, {
 		time = timeForMakeDinosaurHappy,
-		y = self.backg.y - k * self.size,
-		onComplete = self.completeAnimation
+		x = tx,
+		y = ty,
 	})
-	transition.to(self.text, {
-		time = timeForMakeDinosaurHappy, 
+	transition.to(self.text,{
+		time = timeForMakeDinosaurHappy,
+		x = tx,
+		y = ty,
+		onComplete = other.scaleAnim_part1
+	})
+end
+
+-- тут тоже особо ничего интерсеного, просто движение плиток на k плиток вниз или вверх или вправо или влево
+function Tile:moveUp(k)
+	self.parent.hasAnimation = true
+	self.parent.animsInQueue = self.parent.animsInQueue + 1
+	transition.to(self.backg,{
+		time = timeForMakeDinosaurHappy,
+		y = self.backg.y - k * self.size,
+	})
+	transition.to(self.text,{
+		time = timeForMakeDinosaurHappy,
 		y = self.text.y - k * self.size,
 		onComplete = self.completeAnimation
 	})
+
+	self.x, self.y = self.x, self.y - k * self.size
 end
-function Tile:moveDown(k)-- передвигает плитку на k клеток вниз с анимацией
+function Tile:moveRight(k)
 	self.parent.hasAnimation = true
-	transition.to(self.backg, {
-		time = timeForMakeDinosaurHappy,
-		y = self.backg.y + k * self.size,
-		onComplete = self.completeAnimation
-	})
-	transition.to(self.text, {
-		time = timeForMakeDinosaurHappy, 
-		y = self.text.y + k * self.size,
-		onComplete = self.completeAnimation
-	})
-end
-function Tile:moveRight(k) -- передвигает плитку на k клеток вправо с анимацией
-	self.parent.hasAnimation = true
-	transition.to(self.backg, {
+	self.parent.animsInQueue = self.parent.animsInQueue + 1
+	transition.to(self.backg,{
 		time = timeForMakeDinosaurHappy,
 		x = self.backg.x + k * self.size,
-		onComplete = self.completeAnimation
 	})
-	transition.to(self.text, {
-		time = timeForMakeDinosaurHappy, 
+	transition.to(self.text,{
+		time = timeForMakeDinosaurHappy,
 		x = self.text.x + k * self.size,
 		onComplete = self.completeAnimation
 	})
+
+	self.x, self.y = self.x + k * self.size, self.y
 end
-function Tile:moveLeft(k) -- передвигает плитку на k клеток влево с анимацией
+function Tile:moveDown(k)
 	self.parent.hasAnimation = true
-	transition.to(self.backg, {
+	self.parent.animsInQueue = self.parent.animsInQueue + 1
+	transition.to(self.backg,{
 		time = timeForMakeDinosaurHappy,
-		x = self.backg.x - k * self.size,
+		y = self.backg.y + k * self.size,
+	})
+	transition.to(self.text,{
+		time = timeForMakeDinosaurHappy,
+		y = self.text.y + k * self.size,
 		onComplete = self.completeAnimation
 	})
-	transition.to(self.text, {
-		time = timeForMakeDinosaurHappy, 
+
+	self.x, self.y = self.x, self.y + k * self.size
+end
+function Tile:moveLeft(k)
+	self.parent.hasAnimation = true
+	self.parent.animsInQueue = self.parent.animsInQueue + 1
+	transition.to(self.backg,{
+		time = timeForMakeDinosaurHappy,
+		x = self.backg.x - k * self.size,
+	})
+	transition.to(self.text,{
+		time = timeForMakeDinosaurHappy,
 		x = self.text.x - k * self.size,
 		onComplete = self.completeAnimation
 	})
+
+	self.x, self.y = self.x - k * self.size, self.y
 end
 
 -----------------------------------------------------------------
