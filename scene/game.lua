@@ -11,6 +11,15 @@ local scene = composer.newScene()
 local Tile = require("objects.tile")
 local Field= require("objects.Field")
 
+_G.achievements = {
+	a4096 = false,
+	a8192 = false,
+	a16384= false,
+	a32786= false,
+	a65536= false,
+	a131072=false,
+}
+
 local gameField
 
 local backGroup  
@@ -24,7 +33,7 @@ function swap(event)
 	if phase == "up" then
 		local key = event.keyName
 		local time = os.clock()
-		if time > lastTouch + timeForMakeDinosaurHappy/1000 * 2 then
+		if not gameField.hasAnimation then
 			if key == "up" then
 				gameField:swapUp()
 			elseif key == "down" then
@@ -38,10 +47,13 @@ function swap(event)
 		end
 	end
 end
+
+
 -- рекомендую сюда не лезть, это жопка
 function swipe(event)
 	local phase = event.phase
-	if phase == "ended" then
+	local time = os.clock()
+	if phase == "ended" and not gameField.hasAnimation then
 		local dx = event.x - event.xStart -- дельта х, если отрицательна, то свайп влево, иначе вправо
 		local dy = event.y - event.yStart -- дельта у, если отрицаетльна, то свайп вверх, иначе вниз
 		local amplX = display.contentWidth / 8 -- максимальное отклонение, от начального икса
@@ -66,7 +78,7 @@ function swipe(event)
 				gameField:swapRight()
 			end
 		end
-		------------------------------
+		lastTouch = time
 	end
 end
 
@@ -83,12 +95,18 @@ function scene:create( event )
 	mainGroup = display.newGroup()
 	uiGroup = display.newGroup()
 	-- начало игры
-	local size = 4
+	local size = 6
 	gameField = Field(size, mainGroup)
 	gameField.scoreText.parent = uiGroup
-	gameField:addNewTile()
-	gameField:addNewTile()
-	
+	--local val = 2
+	--for i = 1, size do
+	--	for j = 1, size do
+	--		gameField:addNewTile(j, i, val)
+	--		val = val * 2
+	--	end
+	--end
+	gameField:addNewTile(1, 1, 2048)
+	gameField:addNewTile(2, 1, 2048)
 end
 
 
