@@ -1,7 +1,5 @@
-local composer = require( "composer" )
+local widget = require( "widget" )
+local composer = require( "composer" ) 
 
-display.setStatusBar( display.HiddenStatusBar )
-
-math.randomseed( os.time() )
-
-composer.gotoScene("intro")
+-- Function to handle button events
+composer.gotoScene('scene.menu')
