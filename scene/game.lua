@@ -108,14 +108,7 @@ function scene:create( event )
 	local size = 4 -- размер поля (4*4, 5*5, 8*8)
 	gameField = Field(size, mainGroup) -- экземпляр поля
 	gameField.scoreText.parent = uiGroup -- забей
-	--[[local val = 2
-			for i = 1, size do
-				for j = 1, size do
-					gameField:addNewTile(j, i, val)
-					val = val * 2
-					gameField.moved = true
-				end
-			end]] -- на это тоже забей
+	
 	gameField:addNewTile() -- Добавление первых двух плиток
 	gameField.moved = true --
 	gameField:addNewTile() -- 
