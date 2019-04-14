@@ -11,17 +11,8 @@ local scene = composer.newScene()
 local Tile = require("objects.tile")
 local Field= require("objects.Field")
 
-_G.achievements = { -- ачивки, если true, то она получена
-	a4096 = false, -- ачивка за плитку 4096
-	a8192 = false, -- и т.д.
-	a16384= false, -- и т.д.
-	a32786= false,
-	a65536= false,
-	a131072=false,
-}
 _G.ACCEPTION = true -- я не уверен нужна ли эта переменная, но она короче должна отвечать за нажатия, типо если нажата какая - то клавиша, то другую нажимать нельзя
 _G.GameOver = false -- глобальная переменная, если она true, то игрок больше не может двигаться, иначе может
-_G.LAST_Field_Copy = nil -- эта пременная должна отвечать за последнее сохранение игры, откат на шаг назад.
 
 _G.gradientSheet = graphics.newImageSheet("padoru/sheet.png", gradientsOpts:getSheet())
 _G.padoruSheet = graphics.newImageSheet("padoru/padorusheet.png", padoruOptions:getSheet())
@@ -108,23 +99,15 @@ function scene:create( event )
 	mainGroup = display.newGroup()
 	uiGroup = display.newGroup()
 	-- начало игры
-<<<<<<< HEAD
 	local size = 4
+	print(sizeOfField)
 	gameField = Field(sizeOfField, mainGroup)
 	gameField.scoreText.parent = uiGroup
 	gameField:addNewTile()
+	gameField.isMoved = true
 	gameField:addNewTile()
-=======
-	local size = 4 -- размер поля (4*4, 5*5, 8*8)
-	gameField = Field(size, mainGroup) -- экземпляр поля
-	gameField.scoreText.parent = uiGroup -- забей
->>>>>>> fa8a1c3f003e2d87d2a664e7119be0787661d44e
-	
-	gameField:addNewTile() -- Добавление первых двух плиток
-	gameField.moved = true --
-	gameField:addNewTile() -- 
-end
 
+end
 
 -- show()
 function scene:show( event )

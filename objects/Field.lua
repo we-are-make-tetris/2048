@@ -31,6 +31,7 @@ function Field:new(size, group)
 	self.spawner = function() self:addNewTile() end -- ну просто спавнер
 
 	local scoreText = display.newText({ -- Текст для счета
+		parent = self.group,
 		x = display.contentWidth / 1.9,
 		y = display.contentHeight / 8,
 		width = self.width,

@@ -4,7 +4,16 @@ local widget = require( "widget" )
 local scene = composer.newScene()
 local sizeText
 
-sizeOfField = 4
+_G.sizeOfField = 4
+_G.LAST_Field_Copy = nil -- эта пременная должна отвечать за последнее сохранение игры, откат на шаг назад.
+_G.achievements = { -- ачивки, если true, то она получена
+    a4096 = false, -- ачивка за плитку 4096
+    a8192 = false, -- и т.д.
+    a16384= false, -- и т.д.
+    a32786= false,
+    a65536= false,
+    a131072=false,
+}
 
 function scene:setSwitchText(text)
     self.sizeText.text = text
