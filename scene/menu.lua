@@ -12,8 +12,8 @@ end
 
 local function setSize(size)
     sizeOfField = size
-    if sizeOfField < 3 then sizeOfField = 8
-    elseif sizeOfField > 8 then sizeOfField = 3 end
+    if sizeOfField < 2 then sizeOfField = 10
+    elseif sizeOfField > 10 then sizeOfField = 2 end
     scene:setSwitchText(tostring(sizeOfField)..' X '..tostring(sizeOfField))
 end
 
@@ -27,7 +27,7 @@ function scene:create( event )
  
     local sceneGroup = self.view 
 
-    local bg = display.newImageRect('padoru/bg.jpg', display.contentWidth+400, display.contentHeight)
+    local bg = display.newImageRect('padoru/bg.jpg', display.contentWidth, display.contentHeight+170)
     bg.x, bg.y = display.contentCenterX, display.contentCenterY
 
     local switchGroup = display.newGroup()
@@ -76,7 +76,7 @@ function scene:create( event )
     })
 
     local start = widget.newButton({
-        onPress = function() composer.gotoScene('scene.game') end,
+        onPress = function() composer.gotoScene('scene.game', {effect = 'slideLeft', time = 200}) end,
         label = "Start",
         fontSize = 110,
         labelColor = { default = textColor, over = textColor },
@@ -97,7 +97,7 @@ function scene:create( event )
     local achive = widget.newButton({
         onPress = function()
             composer.showOverlay("scene.achives",{
-                effect = "fade",
+                effect = "slideDown",
                 time = 200,
                 isModal = true
             })
@@ -113,13 +113,12 @@ function scene:create( event )
         strokeColor = { default={1,1,1,0}, over={1,1,1,0} },
         strokeWidth = 4
     })
-
-
     
     switchGroup:insert(bg)
     switchGroup:insert(achive)
     switchGroup:insert(leftBt)
     switchGroup:insert(rightBt)
+    switchGroup:insert(start)
     switchGroup:insert(self.sizeText)
 
 

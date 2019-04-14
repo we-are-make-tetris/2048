@@ -151,7 +151,7 @@ function Tile:new(group, x, y, value, size, parent)
 			self.y, -- y
 			self.size-4, -- width
 			self.size-4, -- height
-			30, -- cornerRadius
+			self.size/10, -- cornerRadius
 		})) -- плитка, типо ее задний фон
 	backg.fill = ((setColor(self.value)))
 	backg.strokeWidth = 4
@@ -219,7 +219,7 @@ end
 -----------------------------------------------------------------
 
 -----------------------------------------------------------------
-timeForMakeDinosaurHappy = 100 -- время анимаций
+timeForMakeDinosaurHappy = 10 -- время анимаций
 -----------------------------------------------------------------
 
 -----------------------------------------------------------------
