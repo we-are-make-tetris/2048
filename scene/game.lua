@@ -23,6 +23,9 @@ _G.ACCEPTION = true -- я не уверен нужна ли эта переме�
 _G.GameOver = false -- глобальная переменная, если она true, то игрок больше не может двигаться, иначе может
 _G.LAST_Field_Copy = nil -- эта пременная должна отвечать за последнее сохранение игры, откат на шаг назад.
 
+_G.gradientSheet = graphics.newImageSheet("padoru/sheet.png", gradientsOpts:getSheet())
+_G.padoruSheet = graphics.newImageSheet("padoru/padorusheet.png", padoruOptions:getSheet())
+
 local gameField -- игровое поле, просто экземпляр класса
 
 local backGroup  -- группа заднего плана

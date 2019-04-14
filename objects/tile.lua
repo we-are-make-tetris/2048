@@ -8,113 +8,32 @@ local function setRandomValue() -- двойка = 90%     четверка = 10%
 		return 2
 	end
 end
+
 -----------------------------------------------------------------
 -----------------------------------------------------------------
 -----------------------------------------------------------------
 -- все цвета для плиток, заданы картинками, в файле padoru
 function setColor(value)
-	if value > 2^25 then return {0, 0, 0, 1}
-	elseif value == 2^1 then return {
-    	type = "image",
-    	filename = "padoru/coh9.png"
-	}
-	elseif value == 2^2 then return {
-    	type = "image",
-    	filename = "padoru/coh10.png"
-	}
-	elseif value == 2^3 then return {
-    	type = "image",
-    	filename = "padoru/coh2.png"
-	}
-	elseif value == 2^4 then return {
-    	type = "image",
-    	filename = "padoru/coh3.png"
-	}
-	elseif value == 2^5 then return {
-    	type = "image",
-    	filename = "padoru/coh4.png"
-	}
-	elseif value == 2^6 then return {
-    	type = "image",
-    	filename = "padoru/coh8.png"
-	}
-	elseif value == 2^7 then return {
-    	type = "image",
-    	filename = "padoru/coh5.png"
-	}
-	elseif value == 2^8 then return {
-    	type = "image",
-    	filename = "padoru/coh6.png"
-	}
-	elseif value == 2^9 then return {
-    	type = "image",
-    	filename = "padoru/coh7.png"
-	}
-	elseif value == 2^10 then return {
-    	type = "image",
-    	filename = "padoru/coh1.png"
-	}
-	elseif value == 2^11 then return {
-    	type = "image",
-    	filename = "padoru/coh11.png"
-	}
-	elseif value == 2^12 then return {
-    	type = "image",
-    	filename = "padoru/padoru1.png"
-	}
-	elseif value == 2^13 then return {
-    	type = "image",
-    	filename = "padoru/padoru2.png"
-	}
-	elseif value == 2^14 then return {
-    	type = "image",
-    	filename = "padoru/padoru3.png"
-	}
-	elseif value == 2^15 then return {
-    	type = "image",
-    	filename = "padoru/padoru4.png"
-	}
-	elseif value == 2^16 then return {
-    	type = "image",
-    	filename = "padoru/padoru5.png"
-	}
-	elseif value == 2^17 then return {
-    	type = "image",
-    	filename = "padoru/padoru6.png"
-	}
-	elseif value == 2^18 then return {
-    	type = "image",
-    	filename = "padoru/padoru7.png"
-	}
-	elseif value == 2^19 then return {
-    	type = "image",
-    	filename = "padoru/padoru8.png"
-	}
-	elseif value == 2^20 then return {
-    	type = "image",
-    	filename = "padoru/padoru9.png"
-	}
-	elseif value == 2^21 then return {
-    	type = "image",
-    	filename = "padoru/padoru10.png"
-	}
-	elseif value == 2^22 then return {
-    	type = "image",
-    	filename = "padoru/padoru11.png"
-	}
-	elseif value == 2^23 then return {
-    	type = "image",
-    	filename = "padoru/padoru12.png"
-	}
-	elseif value == 2^24 then return {
-    	type = "image",
-    	filename = "padoru/padoru13.png"
-	}
-	elseif value == 2^25 then return {
-    	type = "image",
-    	filename = "padoru/padoru14.png"
-	}
+	local im = log2(value)
+	print(im)
+	if im < 12 then
+		return {
+			type = "image",
+			sheet = gradientSheet,
+			frame = gradientsOpts:getFrameIndex("coh" .. tostring(im))
+		}
+	elseif im < 26 then
+		return{
+			type = "image",
+			sheet = padoruSheet,
+			frame = im - 11
+		}
+	else
+		return{
+			0, 0, 0, 1
+		}
 	end
+
 end
 -----------------------------------------------------------------
 -----------------------------------------------------------------
@@ -219,7 +138,7 @@ end
 -----------------------------------------------------------------
 
 -----------------------------------------------------------------
-timeForMakeDinosaurHappy = 100 -- время анимаций
+timeForMakeDinosaurHappy = 50-- время анимаций
 -----------------------------------------------------------------
 
 -----------------------------------------------------------------
@@ -315,6 +234,15 @@ end
 -----------------------------------------------------------------
 -----------------------------------------------------------------
 -----------------------------------------------------------------
+
+function log2(n)
+	local k = 0
+	while n > 1 do
+		n = n/2
+		k = k+1
+	end
+	return k
+end
 
 
 return Tile
