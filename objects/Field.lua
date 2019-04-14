@@ -45,7 +45,7 @@ function Field:new(size, group)
 
 	timer.performWithDelay(50, self.spawner, -1) -- каждые 50 милисекунд он будет пытаться добавить на поле новую плитку
 -----------------------------------------------------------------------------------------------------------------------------------------
-	local borders = display.newRoundedRect(self.group, display.contentCenterX, display.contentCenterY, self.width-2, self.height-2, 30)
+	local borders = display.newRoundedRect(self.group, display.contentCenterX, display.contentCenterY, self.width-2, self.height-2, self.tileSize/10)
 	borders.strokeWidth = 6
 	borders:setFillColor(unpack({1, 1, 1}))
 	borders:setStrokeColor(unpack({1, 1, 1, 1}))

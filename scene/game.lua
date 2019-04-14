@@ -1,4 +1,5 @@
 local composer = require( "composer" )
+local widget = require( "widget" )
 
 local scene = composer.newScene()
 
@@ -96,17 +97,40 @@ function scene:create( event )
 
 	local sceneGroup = self.view
 	-- Code here runs when the scene is first created but has not yet appeared on screen
-	mainGroup = display.newGroup()
-	uiGroup = display.newGroup()
+	local mainGroup = display.newGroup()
+	local uiGroup = display.newGroup()
 	-- начало игры
+
 	local size = 4
-	print(sizeOfField)
 	gameField = Field(sizeOfField, mainGroup)
 	gameField.scoreText.parent = uiGroup
 	gameField:addNewTile()
 	gameField.isMoved = true
 	gameField:addNewTile()
 
+
+	local back = widget.newButton({
+		onPress = function()
+            composer.gotoScene("scene.menu",{
+                effect = "slideRight",
+                time = 200
+            })
+        end,
+        defaultFile = 'padoru/back.png',
+
+        top = 50,
+        left = 350,
+        width = 100,
+        height = 100,
+
+        fillColor = { default={1,1,1,0}, over={1,1,1,0} },
+        strokeColor = { default={1,1,1,0}, over={1,1,1,0} },
+        strokeWidth = 4
+	})
+
+	sceneGroup:insert(back)
+	sceneGroup:insert(mainGroup)
+	sceneGroup:insert(uiGroup)
 end
 
 -- show()
@@ -124,6 +148,7 @@ function scene:show( event )
 		Runtime:addEventListener("key", swap) -- реакция на клавиатуру
 		Runtime:addEventListener("touch", swipe) -- на свайпы
 	end
+
 end
 
 

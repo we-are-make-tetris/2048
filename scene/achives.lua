@@ -29,6 +29,7 @@ local function onRowRender( event )
     face.strokeWidth = 7
     face:setStrokeColor(unpack(backColor))
 
+
     face.x = rowHeight * 0.55
     face.y = rowHeight * 0.5
 --------------------------------------------------------------------------
@@ -78,6 +79,26 @@ function scene:create( event )
             }
         )
     end
+
+    local cross = widget.newButton({
+        onPress = function() composer.hideOverlay('slideUp', 200) end,
+        label = "x",
+        labelColor = {default={1}, over={1}},
+        fontSize = 70,
+        
+        top = 20,
+        left = 519,
+
+        shape = "rect",
+        width = 100,
+        height = 100,
+        fillColor = { default={1,1,1,0}, over={1,1,1,0} },
+        strokeColor = { default={1,1,1,0}, over={1,1,1,0} },
+        strokeWidth = 4
+    })
+
+    sceneGroup:insert(tableView)
+    sceneGroup:insert(cross)
 end
 
 function scene:show( event )
