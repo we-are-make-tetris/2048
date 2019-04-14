@@ -6,15 +6,15 @@ local sizeText
 
 sizeOfField = 4
 
-local function setSwitchText(text)
-    sizeText.text = text
+function scene:setSwitchText(text)
+    self.sizeText.text = text
 end
 
 local function setSize(size)
     sizeOfField = size
     if sizeOfField < 3 then sizeOfField = 8
     elseif sizeOfField > 8 then sizeOfField = 3 end
-    setSwitchText(tostring(sizeOfField)..' X '..tostring(sizeOfField))
+    scene:setSwitchText(tostring(sizeOfField)..' X '..tostring(sizeOfField))
 end
 
 local function scaleBt(start)
@@ -67,7 +67,7 @@ function scene:create( event )
         strokeColor = { default={1,1,1,0}, over={1,1,1,0} },
         strokeWidth = 4
     })
-    sizeText = display.newText({
+    self.sizeText = display.newText({
         text = "4 X 4",
         x = display.contentCenterX,
         y = 500,
@@ -76,7 +76,7 @@ function scene:create( event )
     })
 
     local start = widget.newButton({
-        onPress = function() gotoScene('game') end,
+        onPress = function() composer.gotoScene('scene.game') end,
         label = "Start",
         fontSize = 110,
         labelColor = { default = textColor, over = textColor },
@@ -92,11 +92,35 @@ function scene:create( event )
     })
     start.x = display.contentCenterX
     timer.performWithDelay(1000, function() scaleBt(start) end, -1)
-    sizeText.fill = textColor
+    self.sizeText.fill = textColor
+
+    local achive = widget.newButton({
+        onPress = function()
+            composer.showOverlay("scene.achives",{
+                effect = "fade",
+                time = 200,
+                isModal = true
+            })
+        end,
+        defaultFile = 'padoru/achive.png',
+
+
+        top = 50,
+        width = 200,
+        height = 200,
+
+        fillColor = { default={1,1,1,0}, over={1,1,1,0} },
+        strokeColor = { default={1,1,1,0}, over={1,1,1,0} },
+        strokeWidth = 4
+    })
+
+
+    
     switchGroup:insert(bg)
+    switchGroup:insert(achive)
     switchGroup:insert(leftBt)
     switchGroup:insert(rightBt)
-    switchGroup:insert(sizeText)
+    switchGroup:insert(self.sizeText)
 
 
     sceneGroup:insert(switchGroup)
