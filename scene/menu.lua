@@ -6,7 +6,6 @@ local scene = composer.newScene()
 local sizeText
 
 _G.sizeOfField = 4
-_G.LAST_Field_Copy = nil -- эта пременная должна отвечать за последнее сохранение игры, откат на шаг назад.
 _G.achievements = { -- ачивки, если true, то она получена
     a4096 = false, -- ачивка за плитку 4096
     a8192 = false, -- и т.д.
@@ -15,8 +14,13 @@ _G.achievements = { -- ачивки, если true, то она получена
     a65536= false,
     a131072=false,
 }
+_G.minTile = 2
+_G.maxTile = 4
+_G.minChance = 90
+_G.maxChance = 10
+_G.pineCoins = 0
 
-local function readAchievments()
+local function readSaves()
     local path = system.pathForFile( "achievements.json", system.DocumentsDirectory )
     local file, errorstr = io.open(path, "r")
     if file then
@@ -33,7 +37,32 @@ local function readAchievments()
 
         file:close()
     end
+    local path2 = system.pathForFile( "storestuff.json", system.DocumentsDirectory )
+    local file2 = io.open(path2, "r")
+    if file2 then
+        local t = json.decode(file2:read("*a"))
+        minTile = t.min
+        maxTile = t.max
+        minChance = t.minChance
+        maxChance = t.maxChance
+        pineCoins = t. pineCoin
+    else
+        file2 = io.open(path2, "w")
 
+        local l = {
+            min = 2,
+            max = 4,
+            minChance = 90,
+            maxChance = 10,
+            pineCoin = 0,
+        }
+
+        local t = json.encode(l)
+
+        file2:write(t)
+
+        file2:close()
+    end
 end
 
 function scene:setSwitchText(text)
@@ -57,7 +86,7 @@ function scene:create( event )
  
     local sceneGroup = self.view 
 
-    readAchievments()
+    readSaves()
 
     local bg = display.newImageRect('padoru/bg.jpg', display.contentWidth, display.contentHeight+170)
     bg.x, bg.y = display.contentCenterX, display.contentCenterY
@@ -164,7 +193,7 @@ function scene:show( event )
     if ( phase == "will" ) then
 
     elseif ( phase == "did" ) then
-        
+
     end
 end
  

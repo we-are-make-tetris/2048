@@ -16,6 +16,8 @@ local Field= require("objects.Field")
 _G.ACCEPTION = true -- я не уверен нужна ли эта переменная, но она короче должна отвечать за нажатия, типо если нажата какая - то клавиша, то другую нажимать нельзя
 _G.GameOver = false -- глобальная переменная, если она true, то игрок больше не может двигаться, иначе может
 
+_G.LAST_Field_Copy = {} -- эта пременная должна отвечать за последнее сохранение игры, откат на шаг назад.
+
 _G.gradientSheet = graphics.newImageSheet("padoru/sheet.png", gradientsOpts:getSheet())
 _G.padoruSheet = graphics.newImageSheet("padoru/padorusheet.png", padoruOptions:getSheet())
 
@@ -36,6 +38,84 @@ _G.completedAnim = function()
 end
 -- lastTouch = 0 -- она тебя не трогает, и ты ее не трогай
 
+local function saveCopy()
+	local t = json.encode({
+		["matrix"] = gameField.matrix,
+		["totalScore"] = gameField.totalScore
+	})
+	local l = json.decode(t, _, nil)
+	LAST_Field_Copy = l
+end
+
+local function applyCopy(  )
+	local gf = Field(gameField.size, gameField.group)
+	gf:setField(LAST_Field_Copy.matrix, LAST_Field_Copy.totalScore)
+	gameField = gf
+end
+
+local function recycleField()
+	local gf = Field(gameField.size, gameField.group)
+	gf:addNewTile()
+	gf:addNewTile()
+	gameField = gf
+end
+
+local function openField(size, group) 
+	local path = system.pathForFile( "map" .. tostring(size) .. ".json", system.DocumentsDirectory )
+    local file, errorstr = io.open(path, "r")
+    if file then
+    	local gf = Field(size, group)
+    	local l = json.decode(file:read("*a"), nil)
+    	gf:setField(l.matrix, l.totalScore)
+    	file:close()
+    	return gf
+	else
+		local gf = Field(size, group)
+		gf:addNewTile()
+		gf:addNewTile()
+		return gf
+    end
+end
+
+local function saveField()
+	local path = system.pathForFile( "map" .. tostring(gameField.size) .. ".json", system.DocumentsDirectory )
+	local file = io.open(path, "w")
+	local t = json.encode({
+		["matrix"] = gameField.matrix,
+		["totalScore"] = gameField.totalScore
+	})
+	file:write(t)
+	file:close()
+
+	path = system.pathForFile( "achievements.json", system.DocumentsDirectory )
+
+	file = io.open(path, "w")
+
+    t = json.encode(_G.achievements)
+
+    file:write(t)
+
+    file:close()
+
+    path2 = system.pathForFile( "storestuff.json", system.DocumentsDirectory )
+
+    local file2 = io.open(path2, "w")
+
+    local l = {
+        min = minTile,
+        max = maxTile,
+        minChance = minChance,
+        maxChance = maxChance,
+        pineCoin = pineCoins,
+    }
+
+    t = json.encode(l)
+
+    file2:write(t)
+
+    file2:close()
+end
+
 -- свапы от клавиатуры(стрелки)
 function swap(event)
 	local phase = event.phase -- фаза, нам нужно реагировать только если клавиша отпущена
@@ -44,16 +124,25 @@ function swap(event)
 		if ACCEPTION then -- если не происходит анимации и при этом можно нажимать (строка 22)
 			if key == "up" then
 				ACCEPTION = false
+				saveCopy()
 				gameField:swapUp()
 			elseif key == "down" then
 				ACCEPTION = false
+				saveCopy()
 				gameField:swapDown()
 			elseif key == "left" then
 				ACCEPTION = false
+				saveCopy()
 				gameField:swapLeft()
 			elseif key == "right" then
 				ACCEPTION = false
+				saveCopy()
 				gameField:swapRight()
+			elseif key == "b" then
+				applyCopy()
+			elseif key == "r" then
+				recycleField()
+				saveField()
 			end
 		end
 	end
@@ -96,33 +185,13 @@ function swipe(event)
 	end
 end
 
-local function openField(size, group) 
-	local path = system.pathForFile( "map" .. tostring(size) .. ".json", system.DocumentsDirectory )
-    local file, errorstr = io.open(path, "r")
-    if file then
-    	local gf = Field(size, group)
-    	local l = json.decode(file:read("*a"), nil)
-    	gf:setField(l.matrix, l.totalScore)
-    	file:close()
-    	return gf
-	else
-		local gf = Field(size, group)
-		gf:addNewTile()
-		gf:addNewTile()
-		return gf
-    end
-end
-local function saveField()
-	local path = system.pathForFile( "map" .. tostring(gameField.size) .. ".json", system.DocumentsDirectory )
-	local file = io.open(path, "w")
-	local t = json.encode({
-		["matrix"] = gameField.matrix,
-		["totalScore"] = gameField.totalScore
-	})
-	file:write(t)
-	file:close()
-end
 
+
+
+
+
+function save( event ) if event.type == "applicationExit" then saveField() end 
+end
 -- -----------------------------------------------------------------------------------
 -- Scene event functions
 -- -----------------------------------------------------------------------------------
@@ -176,6 +245,7 @@ function scene:show( event )
 		--Добавление ивентов
 		Runtime:addEventListener("key", swap) -- реакция на клавиатуру
 		Runtime:addEventListener("touch", swipe) -- на свайпы
+		Runtime:addEventListener("system", save)
 	end
 
 end
