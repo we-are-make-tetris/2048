@@ -101,13 +101,26 @@ local function openField(size, group)
     local file, errorstr = io.open(path, "r")
     if file then
     	local gf = Field(size, group)
-    	local l = json.decode(file:read("*a"))
-    	gf.field = l.field
-    	gf.totalScore = l.totalScore
+    	local l = json.decode(file:read("*a"), nil)
+    	gf:setField(l.matrix, l.totalScore)
+    	file:close()
     	return gf
 	else
-		return Field(size, group)
+		local gf = Field(size, group)
+		gf:addNewTile()
+		gf:addNewTile()
+		return gf
     end
+end
+local function saveField()
+	local path = system.pathForFile( "map" .. tostring(gameField.size) .. ".json", system.DocumentsDirectory )
+	local file = io.open(path, "w")
+	local t = json.encode({
+		["matrix"] = gameField.matrix,
+		["totalScore"] = gameField.totalScore
+	})
+	file:write(t)
+	file:close()
 end
 
 -- -----------------------------------------------------------------------------------
@@ -119,20 +132,12 @@ function scene:create( event )
 
 	local sceneGroup = self.view
 	-- Code here runs when the scene is first created but has not yet appeared on screen
-	local mainGroup = display.newGroup()
-	local uiGroup = display.newGroup()
+	mainGroup = display.newGroup()
+	uiGroup = display.newGroup()
 	-- начало игры
 
-	for k, v in pairs(achievements) do
-		print(k .. " " .. tostring(v))
-	end
-
-	local size = 4
-	gameField = Field(sizeOfField, mainGroup)
 	
-
-
-
+	
 	local back = widget.newButton({
 		onPress = function()
             composer.gotoScene("scene.menu",{
@@ -165,8 +170,7 @@ function scene:show( event )
 
 	if ( phase == "will" ) then
 		-- Code here runs when the scene is still off screen (but is about to come on screen)
-		gameField:addNewTile()
-		gameField:addNewTile()
+		gameField = openField(sizeOfField, mainGroup)
 	elseif ( phase == "did" ) then
 		-- Code here runs when the scene is entirely on screen
 		--Добавление ивентов
@@ -192,16 +196,8 @@ function scene:hide( event )
 
 	elseif ( phase == "did" ) then
 		-- Code here runs immediately after the scene goes entirely off screen
-		local path = system.pathForFile( "map" .. tostring(gameField.size) .. ".json", system.DocumentsDirectory )
-		os.remove(path)
-    	local file = io.open(path, "w")
-    	local t = json.encode({
-    		["field"] = gameField.field,
-    		["totalScore"] = gameField.totalScore
-    	})
-    	file:write(t)
-    	file:close()
-
+		
+		saveField()
 
     	Runtime:removeEventListener("key", swap) -- реакция на клавиатуру
 		Runtime:removeEventListener("touch", swipe) -- на свайпы

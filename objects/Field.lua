@@ -19,7 +19,10 @@ function Field:new(size, group)
 	local width = display.actualContentWidth-20
 
 	self.tileSize = width/size
-
+	left_corner = {
+		x = display.contentCenterX - (display.actualContentWidth-20)/2 + self.tileSize/2,
+		y = display.contentCenterY - (display.actualContentWidth-20)/2 + self.tileSize/2,
+	}
 	local field = {}
 	for i = 1, self.size do
 		table.insert(field, {})
@@ -31,11 +34,8 @@ function Field:new(size, group)
 	end
 	self.tileMatrix  = field2 -- матрица, с плитками она не должна много весить там всего лишь три переменные и две функции.
 
-	left_corner = {
-		x = display.contentCenterX - (display.actualContentWidth-20)/2 + self.tileSize/2,
-		y = display.contentCenterY - (display.actualContentWidth-20)/2 + self.tileSize/2,
-	}
-
+	
+	self.totalScore = 0
 	----------------------------------------------
 	-- визуальная часть поля
 	local borders = display.newRoundedRect(
@@ -53,6 +53,21 @@ function Field:new(size, group)
 	-----------------------------------------------
 end
 ------------------------------------------------------------------
+
+function Field:setField(mat, scor)
+	self.matrix = mat
+	self.totalScore = scor
+
+	for i = 1, self.size do
+		for j = 1, self.size do
+			if self.matrix[i][j] then
+				self:addNewTile(i, j, self.matrix[i][j])
+			end
+		end
+	end
+end
+
+------------------------------------------------------------------
 -- добавление новой плитки в поле
 ------------------------------------------------------------------
 function Field:addNewTile(x, y, value)
@@ -60,11 +75,11 @@ function Field:addNewTile(x, y, value)
 	
 	local tmp = true -- проверка наличия свободных мест
 
-	if self.matrix[x][y] then
+	if self.tileMatrix[x][y] then
 		tmp = false
 		for i = 1, self.size do
 			for j = 1, self.size do
-				if not self.matrix[i][j] then x, y = i, j; tmp = true; break end
+				if not self.tileMatrix[i][j] then x, y = i, j; tmp = true; break end
 			end
 		end
 	end
@@ -126,16 +141,18 @@ end
 ------------------------------------------------------------------
 ------------------------------------------------------------------
 ------------------------------------------------------------------
-tfmdh = 50 -- TimeForMakeDinosuarHappy
+tfmdh = 100 -- TimeForMakeDinosuarHappy
 ------------------------------------------------------------------
 ------------------------------------------------------------------
 ------------------------------------------------------------------
+
 local function getCoordinates(x, y, size)
 	return {
 		x = left_corner.x + (x-1) * size,
 		y = left_corner.y + (y-1) * size
 	}
 end
+
 -- ДВИЖЕНИЕ ПЛИТОК
 local function moveTo(trans, target, onComp) 
 	onComp = onComp or nil
