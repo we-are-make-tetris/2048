@@ -1,126 +1,115 @@
 local Field = Object:extend()
 local tile = require('objects.tile')
 
+function getRandomValue()
+	local tmp = math.random(10)
+	if tmp == 1 then
+		return 4
+	else
+		return 2
+	end
+end
 
+local left_corner
 
 function Field:new(size, group)	
-	self.size = size -- размер, например 4*4; 5*5; 8*8
-	self.tileSize = (display.contentWidth-20) / self.size -- размер плитки, подстраивается под ширину экрана
-	self.width = self.tileSize * self.size --
-	self.height= self.tileSize * self.size -- ширина и высота поля в пикселях
-	self.group = group -- группа в которой все будет рисоваться
-	
-	self.hasAnimation = false -- происходит ли анимация на поле
-	self.moved = true -- true если произошло хоть какое-то движение плиток, необходима для спавна новых плиток
-	self.animsInQueue = 0 -- количество анимаций которые происходят в данный момент
+	self.size = size -- размер поля 4*4, 5*5
+	self.group = group --группа в которой будут рисоваться плитки
 
-	local field = {} -- матрица игрового поля
-	
-	for i = 1, size do
+	local width = display.actualContentWidth-20
+
+	self.tileSize = width/size
+
+	local field = {}
+	for i = 1, self.size do
 		table.insert(field, {})
-	end 	
-	self.field = field -- заполнил её чтобы она не удалилась
+	end
+	self.matrix = field -- матрица, со значениями
+	local field2 = {}
+	for i = 1, self.size do
+		table.insert(field2, {})
+	end
+	self.tileMatrix  = field2 -- матрица, с плитками она не должна много весить там всего лишь три переменные и две функции.
 
-	self.totalScore = 0 -- общий счет игрока, обновляется при соединении двух плиток, если соединить две плитки по 2, то счет увеличится на 4
-
-	self.leftCorner = { -- левый верхний угол поля
-		x = display.contentCenterX - (self.tileSize/2 + (self.size/2) * self.tileSize),
-		y = display.contentCenterY - (self.tileSize/2 + (self.size/2) * self.tileSize)
+	left_corner = {
+		x = display.contentCenterX - (display.actualContentWidth-20)/2 + self.tileSize/2,
+		y = display.contentCenterY - (display.actualContentWidth-20)/2 + self.tileSize/2,
 	}
 
-	self.spawner = function() self:addNewTile() end -- ну просто спавнер
-
-	local scoreText = display.newText({ -- Текст для счета
-		parent = self.group,
-		x = display.contentWidth / 1.9,
-		y = display.contentHeight / 8,
-		width = self.width,
-		text = "Score: " .. tostring(self.totalScore),
-		font = native.systemFont,
-		fontSize = self.width/13,
-		align = "left"
-	})
-
-	self.scoreText = scoreText
-
-	timer.performWithDelay(50, self.spawner, -1) -- каждые 50 милисекунд он будет пытаться добавить на поле новую плитку
------------------------------------------------------------------------------------------------------------------------------------------
-	local borders = display.newRoundedRect(self.group, display.contentCenterX, display.contentCenterY, self.width-2, self.height-2, self.tileSize/10)
-	borders.strokeWidth = 6
-	borders:setFillColor(unpack({1, 1, 1}))
-	borders:setStrokeColor(unpack({1, 1, 1, 1}))
+	----------------------------------------------
+	-- визуальная часть поля
+	local borders = display.newRoundedRect(
+		self.group,
+		display.contentCenterX,
+		display.contentCenterY,
+		width + 4,
+		width + 4,
+		self.tileSize/8
+	)
+	borders.strokeWidth = 8
+	borders:setStrokeColor(0, 0, 1, 1)
+	borders:setFillColor(1, 1, 0, 1)
 	self.borders = borders
-	-- визуальное игровое поле
------------------------------------------------------------------------------------------------------------------------------------------
+	-----------------------------------------------
 end
 ------------------------------------------------------------------
 -- добавление новой плитки в поле
 ------------------------------------------------------------------
 function Field:addNewTile(x, y, value)
+	x, y = x or math.random(self.size), y or math.random(self.size)
+	
+	local tmp = true -- проверка наличия свободных мест
 
-	if not self.hasAnimation and self.moved and not GameOver then -- плитку можно спавнить только если 
-		-- 1) Нет анимаций.
-		-- 2) Произошло какое нибудь движение(плитка двинулась или соединилась с другой)
-		-- 3) Игра не окончена
-		local x, y = x or math.random(1, self.size), y or math.random(1, self.size) -- выбирает рандомное положение, если не задано
-		local tmp = true -- переменная, чтобы не добавлять плитки, если для них нет места
-		if self.field[x][y] then -- если в месте куда я хочу добавить плитку занято, то я перебираю другие клетки, и ищу свободную 
-			tmp = false -- сразу же говорим, что сейчас мест нет
-			for i = 1, self.size do
-				for j = 1, self.size do
-					if not self.field[i][j] then x, y = i, j;tmp = true; break end -- ищем места, если тут свободно, меняем х, у, и tmp
-				end
+	if self.matrix[x][y] then
+		tmp = false
+		for i = 1, self.size do
+			for j = 1, self.size do
+				if not self.matrix[i][j] then x, y = i, j; tmp = true; break end
 			end
 		end
-	 	-- добавляю плитку, в матрицу
-		if tmp then self.field[x][y] = tile(
-			self.group, -- группа родитель
-			self.leftCorner.x + self.tileSize * x, -- положение по Х
-			self.leftCorner.y + self.tileSize * y, -- положение по У
-			value or nil, -- начальное значение плитки
-			self.tileSize, -- размер плитки
-			self -- поле, в котором появится плитка
-			) end
+	end
+	if tmp then
+		self.matrix[x][y] = value or getRandomValue()
 
-		self.moved = false -- чтобы заспавнить следующую нужно сделать движение плиток
-		-- проверка, на game over
-
+		self.tileMatrix[x][y] = tile(
+			self.group,
+			left_corner.x + (x-1) * self.tileSize,
+			left_corner.y + (y-1) * self.tileSize,
+			self.matrix[x][y],
+			self.tileSize
+		)
 		GameOver = self:gameOverCheck()
-		if GameOver then print("game over") end
 	end
 end
 ------------------------------------------------------------------
 ------------------------------------------------------------------
 ------------------------------------------------------------------
 -- проверка Game Over'a
-------------------------------------------------------------------
-------------------------------------------------------------------
-------------------------------------------------------------------
 function Field:gameOverCheck()
 	local verdict =  true -- вердикт, игра окнчена или нет
 
 	-- перебор, всех плиток в матрице
 	for i = 1, self.size do
 		for j = 1, self.size do
-			if self.field[i][j] then 
-				if i > 1 and (not self.field[i - 1][j] or self.field[i][j].value == self.field[i-1][j].value) then -- можно ли двинутся влево
+			if self.matrix[i][j] then 
+				if i > 1 and (not self.matrix[i - 1][j] or self.matrix[i][j] == self.matrix[i-1][j]) then -- можно ли двинутся влево
 					verdict = verdict and false -- если да, то, значит что игра точно продолжится
 				else
 					verdict = verdict and true -- если нет то, возможно она закочилась
 				end
-				if i < self.size - 1 and (not self.field[i + 1][j] or self.field[i][j].value == self.field[i+1][j].value) then -- можно ли двинутся вправо
+				if i < self.size - 1 and (not self.matrix[i + 1][j] or self.matrix[i][j] == self.matrix[i+1][j]) then -- можно ли двинутся вправо
 					verdict = verdict and false -- тоже самое
 				else
 					verdict = verdict and true
 				end
 
-				if j > 1 and (not self.field[i][j - 1] or self.field[i][j].value == self.field[i][j - 1].value) then -- вверх
+				if j > 1 and (not self.matrix[i][j - 1] or self.matrix[i][j] == self.matrix[i][j - 1]) then -- вверх
 					verdict = verdict and false
 				else
 					verdict = verdict and true
 				end
 
-				if j < self.size - 1 and (not self.field[i][j + 1] or self.field[i][j].value == self.field[i][j + 1].value) then-- вниз
+				if j < self.size - 1 and (not self.matrix[i][j + 1] or self.matrix[i][j] == self.matrix[i][j + 1]) then-- вниз
 					verdict = verdict and false
 				else
 					verdict = verdict and true
@@ -132,231 +121,219 @@ function Field:gameOverCheck()
 	end
 	return verdict -- возвращает вердикт
 end
+
+
 ------------------------------------------------------------------
 ------------------------------------------------------------------
 ------------------------------------------------------------------
-
--- ДВИЖЕНИЕ ПЛИТОК
+tfmdh = 50 -- TimeForMakeDinosuarHappy
 ------------------------------------------------------------------
 ------------------------------------------------------------------
 ------------------------------------------------------------------
-
--- Я настоятельно рекомендую сюда не лезть, но если ты хочешь, то удачи тебе и терпения
-function Field:swapUp()
-	for i = 1, self.size do
-		local cons = {} -- список свеже соединенных плиток
-		for j = 1, self.size do
-			if self.field[i][j] then -- есть ли в этой координате плитка?
-				local x = j -- вспомогательная переменная
-				for k = j - 1, 1, -1 do -- ищем первую преграду сверху, ввиде другой плитки
-					if self.field[i][k] then x = k; break
-					end
-				end
-
-				if x == j then -- если сверху не преград
-					if j == 1 then -- елси он и так сверху, то делать ничего не надо
-					else -- иначе двигаем её до конца вверх
-						self.field[i][j]:moveUp(j - 1)
-						self.field[i][1], self.field[i][j] = self.field[i][j], nil -- я не могу объяснить зачем это надо, но оно надо, поверь
-						self.moved = true -- движение произошло
-					end
-				elseif self.field[i][j].value == self.field[i][x].value and not self.field[i][j].concated and not self.field[i][x].concated then
-					-- если есть преграда, и её значение равно занчению этой и ещё ни одна из них не свежесоединенная, то соединяем к верхней нынешнюю 
-					local sc = self.field[i][x]:concat(self.field[i][j])
-					self.totalScore = self.totalScore + sc
-					-- изменяем нынешний счет
-					self.field[i][j] = nil
-					--удаляем плитку
-					table.insert(cons, self.field[i][x]) -- добавляем в список соединенных плиток
-					self.moved = true -- движение произошло
-				elseif x + 1 ~= j then -- при любых других обстоятельствах подовигаем нынешнюю плитку вплотную к верхней
-					self.field[i][j]:moveUp(j - x - 1)
-					self.field[i][x+1], self.field[i][j] = self.field[i][j], self.field[i][x+1] -- забей
-					self.moved = true -- движение произошло
-				end
-			end
-		end
-		for _,v in ipairs(cons) do
-			v.concated = false -- востанавливаем значения соединенности плиток
-		end
-	end
-	self.scoreText.text = "Score: " .. self.totalScore -- измение общего счета
-	ACCEPTION = true -- теперь когда все закончили можно делать следующие свайпы
-end
-------------------------------------------------------------------
--- дальше все тоже самое
-function Field:swapRight()
-	for j = 1, self.size do
-		local cons = {}
-		for i = self.size, 1, -1 do
-			local x
-			if self.field[i][j] then
-				x = i
-				for k = i + 1, self.size do
-					if self.field[k][j] then x = k; break end
-				end
-
-				if x == i then
-					if x == self.size then  
-					else
-						self.field[i][j]:moveRight(self.size - i)
-						self.field[self.size][j], self.field[i][j] = self.field[i][j], nil 
-						self.moved = true
-					end
-				elseif self.field[i][j].value == self.field[x][j].value and not self.field[i][j].concated and not self.field[x][j].concated then
-					local sc = self.field[x][j]:concat(self.field[i][j])
-					self.totalScore = self.totalScore + sc
-					table.insert(cons, self.field[x][j])
-					self.field[i][j] = nil
-					self.moved = true
-				elseif x - 1 ~= i then
-					self.field[i][j]:moveRight(x - i - 1)
-					self.field[x-1][j], self.field[i][j] = self.field[i][j], self.field[x-1][j]
-					self.moved = true
-				end
-			end
-		end
-		for _,v in pairs(cons) do
-			v.concated = false
-		end
-	end
-	self.scoreText.text = "Score: " .. self.totalScore
-	ACCEPTION = true
-end
-
-------------------------------------------------------------------
-------------------------------------------------------------------
--- дальше все делается также
-
-function Field:swapDown()
-	for i = 1, self.size do
-		local cons = {}
-		for j = self.size, 1, -1 do
-			if self.field[i][j] then
-				local x = j
-				for k = j + 1, self.size do
-					if self.field[i][k] then x = k; break
-					end
-				end
-
-				if x == j then
-					if j == self.size then 
-					else
-						self.field[i][j]:moveDown(self.size - j)
-						self.field[i][self.size], self.field[i][j] = self.field[i][j], nil
-						self.moved = true
-					end
-				elseif self.field[i][j].value == self.field[i][x].value and not self.field[i][j].concated and not self.field[i][x].concated then
-					local sc = self.field[i][x]:concat(self.field[i][j])
-					self.totalScore = self.totalScore + sc
-					self.field[i][j] = nil
-					table.insert(cons, self.field[i][x])
-					self.moved = true
-				elseif x - 1 ~= j then
-					self.field[i][j]:moveDown(x - j - 1)
-					self.field[i][x-1], self.field[i][j] = self.field[i][j], self.field[i][x-1]
-					self.moved = true
-				end
-			end
-		end
-		for _,v in ipairs(cons) do
-			v.concated = false
-		end
-	end
-	self.scoreText.text = "Score: " .. self.totalScore -- измение общего счета
-	ACCEPTION = true
-end
-------------------------------------------------------------------
-function Field:swapLeft()
-	for j = 1, self.size do
-		local cons = {}
-		for i = 1, self.size do
-			local x
-			if self.field[i][j] then
-				x = i
-				for k = i - 1, 1, -1 do
-					if self.field[k][j] then x = k; break end
-				end
-
-				if x == i then
-					if x == 1 then  
-					else
-						self.field[i][j]:moveLeft(i - 1)
-						self.field[1][j], self.field[i][j] = self.field[i][j], nil 
-						self.moved = true
-					end
-				elseif self.field[i][j].value == self.field[x][j].value and not self.field[i][j].concated and not self.field[x][j].concated then
-					local sc = self.field[x][j]:concat(self.field[i][j])
-					self.totalScore = self.totalScore + sc
-					table.insert(cons, self.field[x][j])
-					self.field[i][j] = nil
-					self.moved = true
-				elseif x + 1 ~= i then
-					self.field[i][j]:moveLeft(i - x - 1)
-					self.field[x+1][j], self.field[i][j] = self.field[i][j], self.field[x+1][j]
-					self.moved = true
-				end
-			end
-		end
-		for _,v in pairs(cons) do
-			v.concated = false
-		end
-	end
-	self.scoreText.text = "Score: " .. self.totalScore
-	ACCEPTION = true
-end
-
-
-
-
---1%--------------------------------------------------------------------------
--------------12%--------------------------------------------------------------
----------------------34%------------------------------------------------------ -- это типо слои защиты, лол
-------------------------------------46%---------------------------------------
-----------------------------------------------------66%----------------------- -- это реально опасная зона
--------------------------------------------------------------99,9%------------
---------------------------------???%------------------------------------------
--------------------------------WARNING----------------------------------------
-
-function Field:remove()
-	for i = 1, self.size do
-		for j = 1, self.size do
-			if self.field[i][j] then
-				self.field[i][j]:remove()
-			end
-		end
-	end
-end
-
-----------------------------DANGEROUS ZONE------------------------------------
-------------------------------->999%------------------------------------------
-------------------------------->100%------------------------------------------
--------------------------------<1%--------------------------------------------
--------------------------------1/inf------------------------------------------
-------------------------------------------------------------------------------
--- копирование и востановление предыдущей копии
-function Field:copyField()
-	LAST_Field_Copy = {
-		score = self.totalScore,
-		field = copy(self.field),
+local function getCoordinates(x, y, size)
+	return {
+		x = left_corner.x + (x-1) * size,
+		y = left_corner.y + (y-1) * size
 	}
 end
+-- ДВИЖЕНИЕ ПЛИТОК
+local function moveTo(trans, target, onComp) 
+	onComp = onComp or nil
+	numOfAnims = numOfAnims + 1
+	transition.to(trans.backg, {
+		time = tfmdh,
+		x = target.x,
+		y = target.y,
+		onComplete = completedAnim
+	})
+	transition.to(trans.text, {
+		time = tfmdh,
+		x = target.x,
+		y = target.y,
+		onComplete = onComp
+	})
+	trans.x, trans.y = target.x, target.y
+end
+local function concat(trans, target)
+	local size = target.size
+	local p2 = function ()
+		transition.to(target.backg,{
+			time = tfmdh/4,
+			width = size,
+			height = size,
+		})
+	end
+	local f = function()
+		target:setValue(trans.value + target.value)
+		transition.to(target.backg,{
+			time = tfmdh/4,
+			width = size + size/10,
+			height = size + size/10,
+			onComplete = p2
+		})
+		trans:remove()
+	end
+	moveTo(trans, target, f)
+end
+------------------------------------------------------------------
+------------------------------------------------------------------
+---------------------=---------------------------------------------
 
+local f = function() ACCEPTION = true end
 
-function Field:applyCopy()
-	self:remove()
-	self.totalScore = LAST_Field_Copy.score
-	self.field = copy(LAST_Field_Copy.field)
-	for i = 1, #self.field do
-		for j = 1, #self.field[i] do
-			self:addNewTile(i, j, self.field[i][j].value)
-			self.moved = true
+function Field:swapUp()
+	local ch = true
+	for i = 1, self.size do
+		local cons = {}
+		for j = 1, self.size do 
+			if self.matrix[i][j] then
+				local t = j
+				for k = j-1, 1, -1 do
+					if self.tileMatrix[i][k] then
+						t = k; break 
+					end
+				end
+				if t == j then
+					if t == 1 then 
+					else
+						moveTo(self.tileMatrix[i][j], getCoordinates(i, 1, self.tileSize))
+						self.matrix[i][1], self.matrix[i][j] = self.matrix[i][j], nil
+						self.tileMatrix[i][1], self.tileMatrix[i][j] = self.tileMatrix[i][j], nil
+						ch = false
+					end
+				elseif self.matrix[i][j] == self.matrix[i][t] and not cons[t] then
+					concat(self.tileMatrix[i][j], self.tileMatrix[i][t])
+					cons[t] = true
+					self.matrix[i][t] = self.matrix[i][t] * 2
+					self.tileMatrix[i][j], self.matrix[i][j] = nil, nil
+					ch = false
+				elseif j ~= t+1 then
+					moveTo(self.tileMatrix[i][j], getCoordinates(i, t+1, self.tileSize))
+					self.matrix[i][t+1], self.matrix[i][j] = self.matrix[i][j], self.matrix[i][t+1]
+					self.tileMatrix[i][t+1], self.tileMatrix[i][j] = self.tileMatrix[i][j], self.tileMatrix[i][t+1]
+					ch = false
+				end
+			end
 		end
 	end
+	if ch then ACCEPTION = true end
 end
-------------------------------------------------------------------------------
-------------------------------------------------------------------------------
-------------------------------------------------------------------------------
+
+function Field:swapDown()
+	local ch = true
+	for i = 1, self.size do
+		local cons = {}
+		for j = self.size, 1, -1 do 
+			if self.matrix[i][j] then
+				local t = j
+				for k = j+1, self.size do
+					if self.tileMatrix[i][k] then
+						t = k; break 
+					end
+				end
+
+				if t == j then
+					if t == self.size then 
+					else
+						moveTo(self.tileMatrix[i][j], getCoordinates(i, self.size, self.tileSize))
+						self.matrix[i][self.size], self.matrix[i][j] = self.matrix[i][j], nil
+						self.tileMatrix[i][self.size], self.tileMatrix[i][j] = self.tileMatrix[i][j], nil
+					ch = false
+					end
+				elseif self.matrix[i][j] == self.matrix[i][t] and not cons[t] then
+					concat(self.tileMatrix[i][j], self.tileMatrix[i][t])
+					cons[t] = true
+					self.matrix[i][t] = self.matrix[i][t] * 2
+					self.tileMatrix[i][j], self.matrix[i][j] = nil, nil
+					ch = false
+				elseif j ~= t-1 then
+					moveTo(self.tileMatrix[i][j], getCoordinates(i, t-1, self.tileSize))
+					self.matrix[i][t-1], self.matrix[i][j] = self.matrix[i][j], self.matrix[i][t-1]
+					self.tileMatrix[i][t-1], self.tileMatrix[i][j] = self.tileMatrix[i][j], self.tileMatrix[i][t-1]
+					ch = false
+				end
+			end
+		end
+	end
+	if ch then ACCEPTION = true end
+end
+
+function Field:swapRight()
+	local ch = true
+	for j = 1, self.size do
+		local cons = {}
+		for i = self.size, 1, -1 do 
+			if self.matrix[i][j] then
+				local t = i
+				for k = i+1, self.size do
+					if self.tileMatrix[k][j] then
+						t = k; break 
+					end
+				end
+
+				if t == i then
+					if t == self.size then 
+					else
+						moveTo(self.tileMatrix[i][j], getCoordinates(self.size, j, self.tileSize))
+						self.matrix[self.size][j], self.matrix[i][j] = self.matrix[i][j], nil
+						self.tileMatrix[self.size][j], self.tileMatrix[i][j] = self.tileMatrix[i][j], nil
+					ch = false
+					end
+				elseif self.matrix[i][j] == self.matrix[t][j] and not cons[t] then
+					concat(self.tileMatrix[i][j], self.tileMatrix[t][j])
+					cons[t] = true
+					self.matrix[t][j] = self.matrix[t][j] * 2
+					self.tileMatrix[i][j], self.matrix[i][j] = nil, nil
+					ch = false
+				elseif i ~= t-1 then
+					moveTo(self.tileMatrix[i][j], getCoordinates(t - 1, j, self.tileSize))
+					self.matrix[t-1][j], self.matrix[i][j] = self.matrix[i][j], self.matrix[t-1][j]
+					self.tileMatrix[t-1][j], self.tileMatrix[i][j] = self.tileMatrix[i][j], self.tileMatrix[t-1][j]
+					ch = false
+				end
+			end
+		end
+	end
+	if ch then ACCEPTION = true end
+end
+function Field:swapLeft()
+	local ch = true
+	for j = 1, self.size do
+		local cons = {}
+		for i = 1, self.size do 
+			if self.matrix[i][j] then
+				local t = i
+				for k = i-1, 1, -1 do
+					if self.tileMatrix[k][j] then
+						t = k; break 
+					end
+				end
+
+				if t == i then
+					if t == 1 then 
+					else
+						moveTo(self.tileMatrix[i][j], getCoordinates(1, j, self.tileSize))
+						self.matrix[1][j], self.matrix[i][j] = self.matrix[i][j], nil
+						self.tileMatrix[1][j], self.tileMatrix[i][j] = self.tileMatrix[i][j], nil
+					ch = false
+					end
+				elseif self.matrix[i][j] == self.matrix[t][j] and not cons[t] then
+					concat(self.tileMatrix[i][j], self.tileMatrix[t][j])
+					cons[t] = true
+					self.matrix[t][j] = self.matrix[t][j] * 2
+					self.tileMatrix[i][j], self.matrix[i][j] = nil, nil
+					ch = false
+				elseif i ~= t+1 then
+					moveTo(self.tileMatrix[i][j], getCoordinates(t + 1, j, self.tileSize))
+					self.matrix[t+1][j], self.matrix[i][j] = self.matrix[i][j], self.matrix[t+1][j]
+					self.tileMatrix[t+1][j], self.tileMatrix[i][j] = self.tileMatrix[i][j], self.tileMatrix[t+1][j]
+					ch = false
+				end
+			end
+		end
+	end
+	if ch then ACCEPTION = true end
+end
 
 
 

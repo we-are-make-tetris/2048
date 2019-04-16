@@ -1,5 +1,6 @@
 local composer = require( "composer" )
 local widget = require( "widget" ) 
+local json = require("json")
 
 local scene = composer.newScene()
 local sizeText
@@ -14,6 +15,26 @@ _G.achievements = { -- ачивки, если true, то она получена
     a65536= false,
     a131072=false,
 }
+
+local function readAchievments()
+    local path = system.pathForFile( "achievements.json", system.DocumentsDirectory )
+    local file, errorstr = io.open(path, "r")
+    if file then
+        local t = json.decode(file:read("*a"))
+        for k, v in pairs(achievements) do
+            achievements[k] = v or t[k]
+        end
+    else
+        file = io.open(path, "w")
+
+        local t = json.encode(_G.achievements)
+
+        file:write(t)
+
+        file:close()
+    end
+
+end
 
 function scene:setSwitchText(text)
     self.sizeText.text = text
@@ -35,6 +56,8 @@ end
 function scene:create( event )
  
     local sceneGroup = self.view 
+
+    readAchievments()
 
     local bg = display.newImageRect('padoru/bg.jpg', display.contentWidth, display.contentHeight+170)
     bg.x, bg.y = display.contentCenterX, display.contentCenterY
@@ -100,7 +123,7 @@ function scene:create( event )
         strokeWidth = 4
     })
     start.x = display.contentCenterX
-    timer.performWithDelay(1000, function() scaleBt(start) end, -1)
+    timer.performWithDelay(1020, function() scaleBt(start) end, -1)
     self.sizeText.fill = textColor
 
     local achive = widget.newButton({
