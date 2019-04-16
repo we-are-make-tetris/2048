@@ -1,5 +1,6 @@
 local composer = require( "composer" )
 local widget = require( "widget" )
+local json = require("json")
 
 local scene = composer.newScene()
 
@@ -18,21 +19,29 @@ _G.GameOver = false -- глобальная переменная, если он�
 _G.gradientSheet = graphics.newImageSheet("padoru/sheet.png", gradientsOpts:getSheet())
 _G.padoruSheet = graphics.newImageSheet("padoru/padorusheet.png", padoruOptions:getSheet())
 
+
+
 local gameField -- игровое поле, просто экземпляр класса
 
 local backGroup  -- группа заднего плана
 local mainGroup  -- группа игрового поля
 local uiGroup -- группа ui
-
+_G.numOfAnims = 0
+_G.completedAnim = function()
+	numOfAnims = numOfAnims - 1
+	if numOfAnims == 0 then
+		ACCEPTION = true
+		gameField:addNewTile()
+	end
+end
 -- lastTouch = 0 -- она тебя не трогает, и ты ее не трогай
 
 -- свапы от клавиатуры(стрелки)
 function swap(event)
 	local phase = event.phase -- фаза, нам нужно реагировать только если клавиша отпущена
-
 	if phase == "up" then
 		local key = event.keyName -- название нажатой клавишы
-		if not gameField.hasAnimation and ACCEPTION then -- если не происходит анимации и при этом можно нажимать (строка 22)
+		if ACCEPTION then -- если не происходит анимации и при этом можно нажимать (строка 22)
 			if key == "up" then
 				ACCEPTION = false
 				gameField:swapUp()
@@ -55,7 +64,7 @@ end
 -- реагирование на свайпы на телефоне.
 function swipe(event)
 	local phase = event.phase
-	if phase == "ended" and not gameField.hasAnimation and ACCEPTION then
+	if phase == "ended" and ACCEPTION then
 		
 		local dx = event.x - event.xStart -- дельта х, если отрицательна, то свайп влево, иначе вправо
 		local dy = event.y - event.yStart -- дельта у, если отрицаетльна, то свайп вверх, иначе вниз
@@ -87,6 +96,19 @@ function swipe(event)
 	end
 end
 
+local function openField(size, group) 
+	local path = system.pathForFile( "map" .. tostring(size) .. ".json", system.DocumentsDirectory )
+    local file, errorstr = io.open(path, "r")
+    if file then
+    	local gf = Field(size, group)
+    	local l = json.decode(file:read("*a"))
+    	gf.field = l.field
+    	gf.totalScore = l.totalScore
+    	return gf
+	else
+		return Field(size, group)
+    end
+end
 
 -- -----------------------------------------------------------------------------------
 -- Scene event functions
@@ -101,12 +123,14 @@ function scene:create( event )
 	local uiGroup = display.newGroup()
 	-- начало игры
 
+	for k, v in pairs(achievements) do
+		print(k .. " " .. tostring(v))
+	end
+
 	local size = 4
 	gameField = Field(sizeOfField, mainGroup)
-	gameField.scoreText.parent = uiGroup
-	gameField:addNewTile()
-	gameField.isMoved = true
-	gameField:addNewTile()
+	
+
 
 
 	local back = widget.newButton({
@@ -141,7 +165,8 @@ function scene:show( event )
 
 	if ( phase == "will" ) then
 		-- Code here runs when the scene is still off screen (but is about to come on screen)
-
+		gameField:addNewTile()
+		gameField:addNewTile()
 	elseif ( phase == "did" ) then
 		-- Code here runs when the scene is entirely on screen
 		--Добавление ивентов
@@ -159,11 +184,27 @@ function scene:hide( event )
 	local phase = event.phase
 
 	if ( phase == "will" ) then
+
 		-- Code here runs when the scene is on screen (but is about to go off screen)
+
+		
+
 
 	elseif ( phase == "did" ) then
 		-- Code here runs immediately after the scene goes entirely off screen
+		local path = system.pathForFile( "map" .. tostring(gameField.size) .. ".json", system.DocumentsDirectory )
+		os.remove(path)
+    	local file = io.open(path, "w")
+    	local t = json.encode({
+    		["field"] = gameField.field,
+    		["totalScore"] = gameField.totalScore
+    	})
+    	file:write(t)
+    	file:close()
 
+
+    	Runtime:removeEventListener("key", swap) -- реакция на клавиатуру
+		Runtime:removeEventListener("touch", swipe) -- на свайпы
 	end
 end
 
