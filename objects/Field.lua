@@ -2,11 +2,11 @@ local Field = Object:extend()
 local tile = require('objects.tile')
 
 function getRandomValue()
-	local tmp = math.random(10)
-	if tmp == 1 then
-		return 4
+	local tmp = math.random(100)
+	if tmp <= maxChance then
+		return maxTile
 	else
-		return 2
+		return minTile
 	end
 end
 
@@ -222,6 +222,7 @@ function Field:swapUp()
 					concat(self.tileMatrix[i][j], self.tileMatrix[i][t])
 					cons[t] = true
 					self.matrix[i][t] = self.matrix[i][t] * 2
+					self.totalScore = self.totalScore + self.matrix[i][t]
 					self.tileMatrix[i][j], self.matrix[i][j] = nil, nil
 					ch = false
 				elseif j ~= t+1 then
@@ -261,6 +262,7 @@ function Field:swapDown()
 					concat(self.tileMatrix[i][j], self.tileMatrix[i][t])
 					cons[t] = true
 					self.matrix[i][t] = self.matrix[i][t] * 2
+					self.totalScore = self.totalScore + self.matrix[i][t]
 					self.tileMatrix[i][j], self.matrix[i][j] = nil, nil
 					ch = false
 				elseif j ~= t-1 then
@@ -300,6 +302,7 @@ function Field:swapRight()
 					concat(self.tileMatrix[i][j], self.tileMatrix[t][j])
 					cons[t] = true
 					self.matrix[t][j] = self.matrix[t][j] * 2
+					self.totalScore = self.totalScore + self.matrix[t][j]
 					self.tileMatrix[i][j], self.matrix[i][j] = nil, nil
 					ch = false
 				elseif i ~= t-1 then
@@ -338,6 +341,7 @@ function Field:swapLeft()
 					concat(self.tileMatrix[i][j], self.tileMatrix[t][j])
 					cons[t] = true
 					self.matrix[t][j] = self.matrix[t][j] * 2
+					self.totalScore = self.totalScore + self.matrix[t][j]
 					self.tileMatrix[i][j], self.matrix[i][j] = nil, nil
 					ch = false
 				elseif i ~= t+1 then
