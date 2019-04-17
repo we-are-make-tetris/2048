@@ -46,7 +46,6 @@ local function onRowRender( event )
  
     -- Get reference to the row group
     local row = event.row
-    print(row.params.x)
     -- Cache the row "contentWidth" and "contentHeight" because the row bounds can change as children objects are added
     local rowHeight = row.contentHeight
     local rowWidth = row.contentWidth

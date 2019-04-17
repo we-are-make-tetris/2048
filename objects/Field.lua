@@ -1,6 +1,15 @@
 local Field = Object:extend()
 local tile = require('objects.tile')
 
+local function log2(n)
+	local k = 0
+	while n > 1 do
+		n = n/2
+		k = k+1
+	end
+	return k
+end
+
 function getRandomValue()
 	local tmp = math.random(100)
 	if tmp <= maxChance then
@@ -19,6 +28,7 @@ function Field:new(size, group)
 	local width = display.actualContentWidth-20
 
 	self.tileSize = width/size
+
 	left_corner = {
 		x = display.contentCenterX - (display.actualContentWidth-20)/2 + self.tileSize/2,
 		y = display.contentCenterY - (display.actualContentWidth-20)/2 + self.tileSize/2,
@@ -99,6 +109,7 @@ function Field:addNewTile(x, y, value)
 		)
 		GameOver = self:gameOverCheck()
 		if GameOver then gameOverEvent() end
+		switchText(self.totalScore)
 	end
 end
 ------------------------------------------------------------------
@@ -196,10 +207,21 @@ local function concat(trans, target)
 		trans:remove()
 	end
 	moveTo(trans, target, f)
+	local im = log2(target.value) - 11
+	if im > 0 then achievements[im] = true end
+end
+------------------------------------------------------------------
+function Field:removeAll( )
+	for i = 1, self.size do
+		for j = 1, self.size do
+			if self.tileMatrix[i][j] then
+				self.tileMatrix[i][j]:remove()
+			end
+		end
+	end
 end
 ------------------------------------------------------------------
 ------------------------------------------------------------------
----------------------=---------------------------------------------
 
 local f = function() ACCEPTION = true end
 

@@ -8,6 +8,7 @@ local Field= require("objects.Field")
 
 
 local gameField -- игровое поле, просто экземпляр класса
+local scoreText
 
 local scene = composer.newScene()
 
@@ -15,6 +16,9 @@ local scene = composer.newScene()
 local backGroup  -- группа заднего плана
 local mainGroup  -- группа игрового поля
 local uiGroup -- группа ui
+function switchText(x)
+	scoreText.text = tostring(x)
+end
 
 local function saveCopy()
 	local t = json.encode({
@@ -22,10 +26,10 @@ local function saveCopy()
 		["totalScore"] = gameField.totalScore
 	})
 	local l = json.decode(t, _, nil)
-	print(l)
 	LAST_Field_Copy = l
 end
 local function applyCopy(  )
+	if not LAST_Field_Copy.matrix then return 0 end
 	local gf = Field(gameField.size, gameField.group)
 
 	gf:setField(LAST_Field_Copy.matrix, LAST_Field_Copy.totalScore)
@@ -54,7 +58,6 @@ local function saveField()
 		["matrix"] = gameField.matrix,
 		["totalScore"] = gameField.totalScore
 	})
-	print(gameField.matrix)
 	file:write(t)
 	file:close()
 
@@ -87,6 +90,7 @@ local function saveField()
     file2:close()
 end
 local function recycleField()
+	gameField:removeAll()
 	local gf = Field(gameField.size, gameField.group)
 	gf:addNewTile()
 	gf:addNewTile()
@@ -210,10 +214,6 @@ function swipe(event)
 end
 
 
-
-
-
-
 function save( event ) if event.type == "applicationExit" then saveField() end 
 end
 -- -----------------------------------------------------------------------------------
@@ -274,12 +274,24 @@ function scene:create( event )
         fillColor = { default={1,1,1,0}, over={1,1,1,0} },
         strokeColor = { default={1,1,1,0}, over={1,1,1,0} },
 	})
+
+	scoreText = display.newText({
+		text = 0,
+		x = display.contentCenterX/5,
+		y = display.actualContentHeight/20,
+		font = native.systemFont,
+		fontSize = display.actualContentHeight/40,
+	})
+
+
+	uiGroup:insert(scoreText)
 	sceneGroup:insert(backStep)
 	sceneGroup:insert(restart)
 	sceneGroup:insert(back)
 
 	sceneGroup:insert(mainGroup)
 	sceneGroup:insert(uiGroup)
+	
 end
 
 -- show()
@@ -294,6 +306,7 @@ function scene:show( event )
 	elseif ( phase == "did" ) then
 		-- Code here runs when the scene is entirely on screen
 		--Добавление ивентов
+		switchText(gameField.totalScore)
 		Runtime:addEventListener("key", swap) -- реакция на клавиатуру
 		Runtime:addEventListener("touch", swipe) -- на свайпы
 		Runtime:addEventListener("system", save)
@@ -319,7 +332,7 @@ function scene:hide( event )
 		-- Code here runs immediately after the scene goes entirely off screen
 		
 		saveField()
-
+		LAST_Field_Copy = {}
     	Runtime:removeEventListener("key", swap) -- реакция на клавиатуру
 		Runtime:removeEventListener("touch", swipe) -- на свайпы
 	end

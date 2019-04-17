@@ -11,12 +11,12 @@ local frontColor = {0.46, 0.07, 0.07}
 
 _G.sizeOfField = 4
 _G.achievements = { -- ачивки, если true, то она получена
-    a4096 = false, -- ачивка за плитку 4096
-    a8192 = false, -- и т.д.
-    a16384= false, -- и т.д.
-    a32786= false,
-    a65536= false,
-    a131072=false,
+    false, -- ачивка за плитку 4096
+    false, -- и т.д.
+    false, -- и т.д.
+    false,
+    false,
+    false,
 }
 _G.minTile = 2
 _G.maxTile = 4
@@ -29,13 +29,13 @@ local function readSaves()
     local file, errorstr = io.open(path, "r")
     if file then
         local t = json.decode(file:read("*a"))
-        for k, v in pairs(achievements) do
-            achievements[k] = v or t[k]
+        for i, v in ipairs(achievements) do
+            achievements[i] = v or t[i]
         end
     else
         file = io.open(path, "w")
 
-        local t = json.encode(_G.achievements)
+        local t = json.encode(achievements)
 
         file:write(t)
 
@@ -208,7 +208,7 @@ function scene:create( event )
 
     local achive = widget.newButton({
         onPress = function()
-            composer.showOverlay("scene.shop",{
+            composer.showOverlay("scene.achives",{
                 effect = "slideDown",
                 time = 200,
                 isModal = false
@@ -230,7 +230,7 @@ function scene:create( event )
 
     local shop = widget.newButton({
         onPress = function()
-            composer.showOverlay("scene.achives",{
+            composer.showOverlay("scene.shop",{
                 effect = "slideDown",
                 time = 200,
                 isModal = true
