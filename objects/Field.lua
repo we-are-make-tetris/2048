@@ -60,6 +60,10 @@ function Field:setField(mat, scor)
 
 	for i = 1, self.size do
 		for j = 1, self.size do
+			if self.matrix[i][j] and self.matrix[i][j] < minTile then
+				self.matrix[i][j] = getRandomValue()
+			end
+
 			if self.matrix[i][j] then
 				self:addNewTile(i, j, self.matrix[i][j])
 			end
@@ -94,6 +98,7 @@ function Field:addNewTile(x, y, value)
 			self.tileSize
 		)
 		GameOver = self:gameOverCheck()
+		if GameOver then gameOverEvent() end
 	end
 end
 ------------------------------------------------------------------

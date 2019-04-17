@@ -2,41 +2,19 @@ local composer = require( "composer" )
 local widget = require( "widget" )
 local json = require("json")
 
-local scene = composer.newScene()
 
--- -----------------------------------------------------------------------------------
--- Code outside of the scene event functions below will only be executed ONCE unless
--- the scene is removed entirely (not recycled) via "composer.removeScene()"
--- -----------------------------------------------------------------------------------
-
--- объявляю переменные
 local Tile = require("objects.tile")
 local Field= require("objects.Field")
-
-_G.ACCEPTION = true -- я не уверен нужна ли эта переменная, но она короче должна отвечать за нажатия, типо если нажата какая - то клавиша, то другую нажимать нельзя
-_G.GameOver = false -- глобальная переменная, если она true, то игрок больше не может двигаться, иначе может
-
-_G.LAST_Field_Copy = {} -- эта пременная должна отвечать за последнее сохранение игры, откат на шаг назад.
-
-_G.gradientSheet = graphics.newImageSheet("padoru/sheet.png", gradientsOpts:getSheet())
-_G.padoruSheet = graphics.newImageSheet("padoru/padorusheet.png", padoruOptions:getSheet())
-
 
 
 local gameField -- игровое поле, просто экземпляр класса
 
+local scene = composer.newScene()
+
+
 local backGroup  -- группа заднего плана
 local mainGroup  -- группа игрового поля
 local uiGroup -- группа ui
-_G.numOfAnims = 0
-_G.completedAnim = function()
-	numOfAnims = numOfAnims - 1
-	if numOfAnims == 0 then
-		ACCEPTION = true
-		gameField:addNewTile()
-	end
-end
--- lastTouch = 0 -- она тебя не трогает, и ты ее не трогай
 
 local function saveCopy()
 	local t = json.encode({
@@ -46,20 +24,11 @@ local function saveCopy()
 	local l = json.decode(t, _, nil)
 	LAST_Field_Copy = l
 end
-
 local function applyCopy(  )
 	local gf = Field(gameField.size, gameField.group)
 	gf:setField(LAST_Field_Copy.matrix, LAST_Field_Copy.totalScore)
 	gameField = gf
 end
-
-local function recycleField()
-	local gf = Field(gameField.size, gameField.group)
-	gf:addNewTile()
-	gf:addNewTile()
-	gameField = gf
-end
-
 local function openField(size, group) 
 	local path = system.pathForFile( "map" .. tostring(size) .. ".json", system.DocumentsDirectory )
     local file, errorstr = io.open(path, "r")
@@ -76,7 +45,6 @@ local function openField(size, group)
 		return gf
     end
 end
-
 local function saveField()
 	local path = system.pathForFile( "map" .. tostring(gameField.size) .. ".json", system.DocumentsDirectory )
 	local file = io.open(path, "w")
@@ -115,6 +83,56 @@ local function saveField()
 
     file2:close()
 end
+local function recycleField()
+	local gf = Field(gameField.size, gameField.group)
+	gf:addNewTile()
+	gf:addNewTile()
+	gameField = gf
+	saveField()
+end
+
+
+
+-- -----------------------------------------------------------------------------------
+-- Code outside of the scene event functions below will only be executed ONCE unless
+-- the scene is removed entirely (not recycled) via "composer.removeScene()"
+-- -----------------------------------------------------------------------------------
+
+-- объявляю переменные
+
+_G.ACCEPTION = true -- я не уверен нужна ли эта переменная, но она короче должна отвечать за нажатия, типо если нажата какая - то клавиша, то другую нажимать нельзя
+_G.GameOver = false -- глобальная переменная, если она true, то игрок больше не может двигаться, иначе может
+
+_G.LAST_Field_Copy = {} -- эта пременная должна отвечать за последнее сохранение игры, откат на шаг назад.
+
+_G.gradientSheet = graphics.newImageSheet("padoru/sheet.png", gradientsOpts:getSheet())
+_G.padoruSheet = graphics.newImageSheet("padoru/padorusheet.png", padoruOptions:getSheet())
+
+
+_G.gameOverEvent = function()
+	local div = function(a, b) 
+		local x = 0
+		while a > b do a = a- b; x = x + 1 end
+		return x
+	end
+	local x = div(gameField.totalScore, 1000)
+	local added = (8 - gameField.size) * x
+	pineCoins = pineCoins + added
+	recycleField()
+end
+
+
+
+_G.numOfAnims = 0
+_G.completedAnim = function()
+	numOfAnims = numOfAnims - 1
+	if numOfAnims == 0 then
+		ACCEPTION = true
+		gameField:addNewTile()
+	end
+end
+-- lastTouch = 0 -- она тебя не трогает, и ты ее не трогай
+
 
 -- свапы от клавиатуры(стрелки)
 function swap(event)
@@ -142,7 +160,6 @@ function swap(event)
 				applyCopy()
 			elseif key == "r" then
 				recycleField()
-				saveField()
 			end
 		end
 	end
