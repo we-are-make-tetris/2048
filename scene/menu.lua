@@ -5,6 +5,10 @@ local json = require("json")
 local scene = composer.newScene()
 local sizeText
 
+local backColor = {0.09, 0.1, 0.15}
+local darkFrontColor = {0.39, 0.16, 0.16}
+local frontColor = {0.46, 0.07, 0.07}
+
 _G.sizeOfField = 4
 _G.achievements = { -- ачивки, если true, то она получена
     a4096 = false, -- ачивка за плитку 4096
@@ -76,9 +80,9 @@ local function setSize(size)
     scene:setSwitchText(tostring(sizeOfField)..' X '..tostring(sizeOfField))
 end
 
-local function scaleBt(start)
-    transition.to(start, {time = 500, width = 1, height = 1, delta = true, onComplete = function()
-        transition.to(start, {time = 500, width = -1, height = -1, delta = true})
+local function scaleBt(start, width, height)
+    transition.to(start, {time = 500, width = width-1, height = height+1, delta = false, onComplete = function()
+        transition.to(start, {time = 500, width = width+1, height = height-1, delta = false})
     end})
 end
 
@@ -91,12 +95,15 @@ function scene:create( event )
     local bg = display.newImageRect('padoru/bg.jpg', display.contentWidth, display.contentHeight+170)
     bg.x, bg.y = display.contentCenterX, display.contentCenterY
 
-    local switchGroup = display.newGroup()
-
     local switchColor = {0.97, 0.64, 0.1}
     local textColor = {0.96, 0.9, 0.8}
 
+    local switchGroup = display.newGroup()
+    local moneyGroup = display.newGroup()
+    local btGroup = display.newGroup()
+
     local leftBt = widget.newButton({
+        parent = switchGroup,
         onPress = function() setSize(sizeOfField-1) end,
         label = "<",
         fontSize = 90,
@@ -135,6 +142,11 @@ function scene:create( event )
         fontSize = 60,
         font = native.systemFontBold
     })
+    self.sizeText.fill = textColor
+
+    switchGroup:insert(self.sizeText)
+    switchGroup:insert(leftBt)
+    switchGroup:insert(rightBt)
 
     local start = widget.newButton({
         onPress = function() composer.gotoScene('scene.game', {effect = 'slideLeft', time = 200}) end,
@@ -143,19 +155,80 @@ function scene:create( event )
         labelColor = { default = textColor, over = textColor },
         top = 650,
 
-        shape = "roundedRect",
-        width = 100,
-        height = 100,
         cornerRadius = 2,
         fillColor = { default={1,1,1,0}, over={1,1,1,0} },
         strokeColor = { default={1,1,1,0}, over={1,1,1,0} },
         strokeWidth = 4
     })
     start.x = display.contentCenterX
-    timer.performWithDelay(1020, function() scaleBt(start) end, -1)
-    self.sizeText.fill = textColor
+    local debWidth, debHeight = start.width, start.height
+    scaleBt(start, debWidth, debHeight)
+    timer.performWithDelay(990, function() scaleBt(start, debWidth, debHeight) end, -1)
+   
+    local moneyTitle = display.newRoundedRect(80, 45, 100, 90, 20)  
+    moneyTitle:setFillColor(unpack(backColor))
+    moneyTitle.strokeWidth = 5
+    moneyTitle:setStrokeColor(unpack(frontColor))
+
+    local moneyTitle2 = display.newRoundedRect(320, 45, 330, 90, 20)  
+    moneyTitle2:setFillColor(unpack(backColor))
+    moneyTitle2.strokeWidth = 5
+    moneyTitle2:setStrokeColor(unpack(frontColor))
+
+    local money = display.newImageRect('padoru/Money2.png', 80, 70)
+    money.x, money.y = 80, 45
+
+    local moneyAdd = widget.newButton({
+        onPress = function()
+
+        end,
+
+        label = '+',
+        fontSize = 100,
+
+        top = -10,
+        left = 500,
+
+        shape = 'roundedRect',
+        height = 90,
+        width = 90,
+        cornerRadius = 30,
+        strokeWidth = 5,
+
+        fillColor = {default = backColor, over = backColor},
+        strokeColor = {default = frontColor, over = frontColor},
+        labelColor = {default = {1}, over = {1}}
+    })
+
+    moneyGroup:insert(moneyTitle2)
+    moneyGroup:insert(moneyTitle)
+    moneyGroup:insert(money)
+    moneyGroup:insert(moneyAdd)
+
 
     local achive = widget.newButton({
+        onPress = function()
+            composer.showOverlay("scene.shop",{
+                effect = "slideDown",
+                time = 200,
+                isModal = false
+            })
+        end,
+        defaultFile = 'padoru/achive.png',
+
+
+        top = 100,
+        left = 50,
+
+        width = 150,
+        height = 185,
+
+        fillColor = { default={1,1,1,0}, over={1,1,1,0} },
+        strokeColor = { default={1,1,1,0}, over={1,1,1,0} },
+        strokeWidth = 4
+    })
+
+    local shop = widget.newButton({
         onPress = function()
             composer.showOverlay("scene.achives",{
                 effect = "slideDown",
@@ -163,27 +236,29 @@ function scene:create( event )
                 isModal = true
             })
         end,
-        defaultFile = 'padoru/achive.png',
+        defaultFile = 'padoru/shop.png',
 
 
-        top = 50,
-        width = 200,
-        height = 200,
+        top = 100,
+        left = 250,
 
-        fillColor = { default={1,1,1,0}, over={1,1,1,0} },
+        width = 150,
+        height = 185,
+
+        fillColor = { default={1,1,1,1}, over={1,1,1,0} },
         strokeColor = { default={1,1,1,0}, over={1,1,1,0} },
         strokeWidth = 4
     })
-    
-    switchGroup:insert(bg)
-    switchGroup:insert(achive)
-    switchGroup:insert(leftBt)
-    switchGroup:insert(rightBt)
-    switchGroup:insert(start)
-    switchGroup:insert(self.sizeText)
+    btGroup:insert(achive)
+    btGroup:insert(shop)
+    btGroup.y = 50 
 
 
+    sceneGroup:insert(bg)
     sceneGroup:insert(switchGroup)
+    sceneGroup:insert(start)
+    sceneGroup:insert(btGroup)
+    sceneGroup:insert(moneyGroup)
 end
 
 function scene:show( event )
