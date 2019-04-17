@@ -154,8 +154,8 @@ function scene:create( event )
 
         fillColor = { default={1,1,1,0}, over={1,1,1,0} },
         strokeColor = { default={1,1,1,0}, over={1,1,1,0} },
-        strokeWidth = 4
 	})
+	
 
 	sceneGroup:insert(back)
 	sceneGroup:insert(mainGroup)
