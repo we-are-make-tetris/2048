@@ -44,11 +44,13 @@ local function saveCopy()
 		["totalScore"] = gameField.totalScore
 	})
 	local l = json.decode(t, _, nil)
+	print(l)
 	LAST_Field_Copy = l
 end
 
 local function applyCopy(  )
 	local gf = Field(gameField.size, gameField.group)
+
 	gf:setField(LAST_Field_Copy.matrix, LAST_Field_Copy.totalScore)
 	gameField = gf
 end
@@ -84,6 +86,7 @@ local function saveField()
 		["matrix"] = gameField.matrix,
 		["totalScore"] = gameField.totalScore
 	})
+	print(gameField.matrix)
 	file:write(t)
 	file:close()
 
@@ -168,17 +171,21 @@ function swipe(event)
 		if math.abs(dx) < amplX then
 			if dy < 0 then
 				ACCEPTION = false
+				saveCopy()
 				gameField:swapUp()
 			else
 				ACCEPTION = false
+				saveCopy()
 				gameField:swapDown()
 			end
 		else
 			if dx < 0 then
 				ACCEPTION = false
+				saveCopy()
 				gameField:swapLeft()
 			else
 				ACCEPTION = false
+				saveCopy()
 				gameField:swapRight()
 			end
 		end
@@ -204,8 +211,6 @@ function scene:create( event )
 	mainGroup = display.newGroup()
 	uiGroup = display.newGroup()
 	-- начало игры
-
-	
 	
 	local back = widget.newButton({
 		onPress = function()
@@ -216,17 +221,46 @@ function scene:create( event )
         end,
         defaultFile = 'padoru/back.png',
 
-        top = 50,
+        top = 25,
         left = 350,
         width = 100,
         height = 100,
 
         fillColor = { default={1,1,1,0}, over={1,1,1,0} },
         strokeColor = { default={1,1,1,0}, over={1,1,1,0} },
-	})
-	
+	})		
+	local restart = widget.newButton({
+		onPress = function()
+			recycleField()
+		end,
+		defaultFile = 'padoru/restart.png',
 
+        top = 850,
+        left = 150,
+        width = 100,
+        height = 100,
+
+        fillColor = { default={1,1,1,0}, over={1,1,1,0} },
+        strokeColor = { default={1,1,1,0}, over={1,1,1,0} },
+	})
+	local backStep = widget.newButton({
+		onPress = function()
+			applyCopy()
+		end,
+		defaultFile = 'padoru/backStep.png',
+
+        top = 850,
+        left = 400,
+        width = 100,
+        height = 100,
+
+        fillColor = { default={1,1,1,0}, over={1,1,1,0} },
+        strokeColor = { default={1,1,1,0}, over={1,1,1,0} },
+	})
+	sceneGroup:insert(backStep)
+	sceneGroup:insert(restart)
 	sceneGroup:insert(back)
+
 	sceneGroup:insert(mainGroup)
 	sceneGroup:insert(uiGroup)
 end
